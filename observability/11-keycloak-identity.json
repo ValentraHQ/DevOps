@@ -1,0 +1,4142 @@
+{
+ "uid": "utm-obs-11-keycloak",
+ "title": "11 - Keycloak Identity",
+ "description": "**Purpose:** authentication and identity observability for the core Keycloak (`utm-core/keycloak`) — login activity, failures, realm and client inventory, and service health.\n\n**Data sources:** `keycloak.event_entity` and the Keycloak schema via the read-only `grafana_ro` account; Prometheus for pod health.\n\n**Privacy:** no usernames, emails or IP addresses are queried. Only opaque user UUIDs, for distinct counts.\n\n**Known gap:** Keycloak exposes no Prometheus metrics here (`KC_METRICS_ENABLED` unset, `/metrics` → 404), so runtime panels are container-level only. See the note at the foot of the dashboard.\n\n**Note:** this queries a live transactional database. All panels aggregate; refresh is 5m by design.",
+ "tags": [
+  "utm-observability",
+  "keycloak",
+  "identity"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 1,
+ "weekStart": "",
+ "refresh": "5m",
+ "preload": false,
+ "time": {
+  "from": "now-30d",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 201,
+   "type": "row",
+   "title": "Identity Overview",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 202,
+   "type": "stat",
+   "title": "Auth Events",
+   "description": "All rows in keycloak.event_entity (all time).",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM keycloak.event_entity",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 203,
+   "type": "stat",
+   "title": "Auth Failures",
+   "description": "Events whose type ends in _ERROR. Non-zero means clients or users are failing to authenticate.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM keycloak.event_entity WHERE type LIKE '%ERROR%'",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 204,
+   "type": "stat",
+   "title": "Authenticating Users",
+   "description": "COUNT(DISTINCT user_id). Opaque UUIDs only — no usernames or emails are read.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(DISTINCT user_id) AS value FROM keycloak.event_entity WHERE user_id IS NOT NULL",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 205,
+   "type": "stat",
+   "title": "Realms",
+   "description": "Configured realms.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM keycloak.realm",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 206,
+   "type": "stat",
+   "title": "Clients",
+   "description": "OIDC clients across all realms.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM keycloak.client",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 207,
+   "type": "stat",
+   "title": "Keycloak Users",
+   "description": "Identities in keycloak.user_entity.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM keycloak.user_entity",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 208,
+   "type": "row",
+   "title": "Authentication Activity",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "id": 209,
+   "type": "timeseries",
+   "title": "Authentication Events Over Time",
+   "description": "Hourly buckets from keycloak.event_entity, split by event type. CLIENT_LOGIN is service-to-service (client credentials); LOGIN is an interactive user sign-in.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 16,
+    "x": 0,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "time_series",
+     "rawSql": "SELECT FROM_UNIXTIME(FLOOR(event_time/1000/3600)*3600) AS time, type AS metric, COUNT(*) AS value FROM keycloak.event_entity WHERE $__timeFilter(FROM_UNIXTIME(event_time/1000)) GROUP BY time, type ORDER BY time",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 210,
+   "type": "barchart",
+   "title": "Events by Type",
+   "description": "Confirmed types: CLIENT_LOGIN, LOGIN, CODE_TO_TOKEN, CODE_TO_TOKEN_ERROR.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 16,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT type, COUNT(*) AS events FROM keycloak.event_entity GROUP BY type ORDER BY events DESC",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 211,
+   "type": "table",
+   "title": "Authentication by Client",
+   "description": "Which OIDC clients are authenticating, and how. A client that suddenly stops appearing here has lost its integration.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 15
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": true,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Events"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT e.client_id AS Client, r.name AS Realm, e.type AS `Event Type`, COUNT(*) AS Events, MAX(FROM_UNIXTIME(e.event_time/1000)) AS `Last Seen` FROM keycloak.event_entity e LEFT JOIN keycloak.realm r ON r.id = e.realm_id GROUP BY e.client_id, r.name, e.type ORDER BY Events DESC LIMIT 50",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 212,
+   "type": "timeseries",
+   "title": "Interactive Logins vs Service Logins",
+   "description": "LOGIN (human sign-in) against CLIENT_LOGIN (service accounts). Service traffic normally dominates by orders of magnitude.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 15
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "time_series",
+     "rawSql": "SELECT FROM_UNIXTIME(FLOOR(event_time/1000/3600)*3600) AS time, CASE WHEN type='LOGIN' THEN 'interactive login' WHEN type='CLIENT_LOGIN' THEN 'service login' ELSE type END AS metric, COUNT(*) AS value FROM keycloak.event_entity WHERE $__timeFilter(FROM_UNIXTIME(event_time/1000)) GROUP BY time, metric ORDER BY time",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 213,
+   "type": "row",
+   "title": "Authentication Failures",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 23
+   },
+   "panels": []
+  },
+  {
+   "id": 214,
+   "type": "timeseries",
+   "title": "Failures Over Time",
+   "description": "Any event type containing _ERROR. A spike here is an authentication outage — this is the panel that would have surfaced the Grafana OAuth failure on 2026-09-21 without reading pod logs.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 24
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "time_series",
+     "rawSql": "SELECT FROM_UNIXTIME(FLOOR(event_time/1000/3600)*3600) AS time, CONCAT(type, ' / ', IFNULL(NULLIF(error,''),'no detail')) AS metric, COUNT(*) AS value FROM keycloak.event_entity WHERE type LIKE '%ERROR%' AND $__timeFilter(FROM_UNIXTIME(event_time/1000)) GROUP BY time, metric ORDER BY time",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 215,
+   "type": "table",
+   "title": "Failure Detail",
+   "description": "Grouped by client and error reason. `invalid_client_credentials` means a wrong or missing client secret; `invalid_grant` means bad user credentials.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 24
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Count"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "gradient"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "green",
+           "value": null
+          },
+          {
+           "color": "#EAB839",
+           "value": 1
+          },
+          {
+           "color": "red",
+           "value": 10
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Count"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT e.client_id AS Client, e.type AS `Event Type`, IFNULL(NULLIF(e.error,''),'(none)') AS Error, COUNT(*) AS Count, MIN(FROM_UNIXTIME(e.event_time/1000)) AS `First Seen`, MAX(FROM_UNIXTIME(e.event_time/1000)) AS `Last Seen` FROM keycloak.event_entity e WHERE e.type LIKE '%ERROR%' GROUP BY e.client_id, e.type, Error ORDER BY Count DESC LIMIT 50",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 216,
+   "type": "row",
+   "title": "Realm & Client Inventory",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 32
+   },
+   "panels": []
+  },
+  {
+   "id": 217,
+   "type": "table",
+   "title": "Realms",
+   "description": "Per-realm identity and client counts, straight from the Keycloak schema.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 33
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Users"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT r.name AS Realm, IF(r.enabled=1,'enabled','DISABLED') AS Status, (SELECT COUNT(*) FROM keycloak.user_entity u WHERE u.realm_id=r.id) AS Users, (SELECT COUNT(*) FROM keycloak.client c WHERE c.realm_id=r.id) AS Clients, (SELECT COUNT(*) FROM keycloak.keycloak_role k WHERE k.realm_id=r.id) AS Roles FROM keycloak.realm r ORDER BY Users DESC",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 218,
+   "type": "table",
+   "title": "Clients",
+   "description": "OIDC clients by realm. `service account` clients authenticate as themselves (CLIENT_LOGIN); `public` clients are browser-facing.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 33
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT c.client_id AS Client, r.name AS Realm, IF(c.enabled=1,'enabled','DISABLED') AS Status, IF(c.public_client=1,'public','confidential') AS Type, IF(c.service_accounts_enabled=1,'yes','no') AS `Service Account` FROM keycloak.client c LEFT JOIN keycloak.realm r ON r.id=c.realm_id ORDER BY r.name, c.client_id LIMIT 100",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 219,
+   "type": "row",
+   "title": "Keycloak Service Health",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 41
+   },
+   "panels": []
+  },
+  {
+   "id": 220,
+   "type": "stat",
+   "title": "Pod Ready",
+   "description": "kube_pod_status_ready for utm-core/keycloak. 0 means the identity provider is down and nothing on the platform can authenticate.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 0,
+    "y": 42
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_pod_status_ready{condition=\"true\",namespace=\"utm-core\",pod=~\"keycloak-.*\"}) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 221,
+   "type": "stat",
+   "title": "Restarts (24h)",
+   "description": "Container restarts in the last day.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 5,
+    "y": 42
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       },
+       {
+        "color": "red",
+        "value": 5
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"utm-core\",pod=~\"keycloak-.*\"}[24h])) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 222,
+   "type": "timeseries",
+   "title": "Keycloak CPU",
+   "description": "Container CPU cores, 5m rate.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 7,
+    "x": 10,
+    "y": 42
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"utm-core\",pod=~\"keycloak-.*\",container!=\"\"}[5m]))",
+     "legendFormat": "cpu cores",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 223,
+   "type": "timeseries",
+   "title": "Keycloak Memory",
+   "description": "Working-set memory — what the OOM killer acts on.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 7,
+    "x": 17,
+    "y": 42
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "bytes",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(container_memory_working_set_bytes{namespace=\"utm-core\",pod=~\"keycloak-.*\",container!=\"\"})",
+     "legendFormat": "working set",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 225,
+   "type": "row",
+   "title": "Keycloak JVM Runtime  (live, since KC_METRICS_ENABLED)",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 47
+   },
+   "panels": []
+  },
+  {
+   "id": 226,
+   "type": "stat",
+   "title": "Heap Used",
+   "description": "base_memory_usedHeap_bytes. Live JVM heap of the core Keycloak. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 48
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "bytes"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "base_memory_usedHeap_bytes{job=\"keycloak-metrics\"}",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 227,
+   "type": "stat",
+   "title": "Heap Utilisation",
+   "description": "Used heap as a fraction of max heap (-Xmx). Sustained >85% precedes GC thrash and login latency. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 48
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 0.75
+       },
+       {
+        "color": "red",
+        "value": 0.85
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percentunit",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "base_memory_usedHeap_bytes{job=\"keycloak-metrics\"} / base_memory_maxHeap_bytes{job=\"keycloak-metrics\"}",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 228,
+   "type": "stat",
+   "title": "Live Threads",
+   "description": "jvm_threads_live_threads. Peak since start is jvm_threads_peak_threads. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 48
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "jvm_threads_live_threads{job=\"keycloak-metrics\"}",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 229,
+   "type": "stat",
+   "title": "GC Overhead",
+   "description": "jvm_gc_overhead_percent -- approximate share of CPU spent in GC. NOTE: despite the metric name this is a ratio in [0..1]; it is rendered here as a percentage. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 48
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 0.05
+       },
+       {
+        "color": "red",
+        "value": 0.1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percentunit",
+     "decimals": 2
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "jvm_gc_overhead_percent{job=\"keycloak-metrics\"}",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 230,
+   "type": "stat",
+   "title": "JVM Uptime",
+   "description": "process_uptime_seconds. A reset here is a Keycloak restart -- correlate with the Restarts panel above and with any gap in Authentication Events. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 48
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "process_uptime_seconds{job=\"keycloak-metrics\"}",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 231,
+   "type": "stat",
+   "title": "Open File Descriptors",
+   "description": "process_files_open_files, against a process_files_max_files ceiling of 524,288 here. Sockets to the database and to clients count against this. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 48
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "process_files_open_files{job=\"keycloak-metrics\"}",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 232,
+   "type": "timeseries",
+   "title": "Heap: used / committed / max",
+   "description": "base_memory_usedHeap_bytes vs committedHeap vs maxHeap. The gap between committed and max is headroom the JVM has not claimed yet. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "bytes",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "base_memory_usedHeap_bytes{job=\"keycloak-metrics\"}",
+     "legendFormat": "used",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "base_memory_committedHeap_bytes{job=\"keycloak-metrics\"}",
+     "legendFormat": "committed",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "base_memory_maxHeap_bytes{job=\"keycloak-metrics\"}",
+     "legendFormat": "max (-Xmx)",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 233,
+   "type": "timeseries",
+   "title": "Memory pools by region",
+   "description": "jvm_memory_used_bytes broken out by pool id. G1 Eden sawtooths with allocation; a rising G1 Old Gen floor that survives collection is the leak signature. Metaspace is non-heap and is not bounded by -Xmx. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "bytes",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "jvm_memory_used_bytes{job=\"keycloak-metrics\"}",
+     "legendFormat": "{{area}} / {{id}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 234,
+   "type": "timeseries",
+   "title": "GC pause time",
+   "description": "rate(jvm_gc_pause_seconds_sum[5m]) -- seconds of stop-the-world pause per second, split by cause. Causes observed on this instance: G1 Evacuation Pause, G1 Preventive Collection, Metadata GC Threshold. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 60
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "s",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "decimals": 4
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "rate(jvm_gc_pause_seconds_sum{job=\"keycloak-metrics\"}[5m])",
+     "legendFormat": "{{cause}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 235,
+   "type": "timeseries",
+   "title": "Threads by state",
+   "description": "jvm_threads_states_threads. A climbing 'blocked' count means lock contention -- on Keycloak that is usually the database connection pool, shown in the next row. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 60
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 40,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "jvm_threads_states_threads{job=\"keycloak-metrics\"}",
+     "legendFormat": "{{state}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 236,
+   "type": "timeseries",
+   "title": "CPU: process vs host",
+   "description": "process_cpu_usage is this JVM's own share; system_cpu_usage is the whole node. Both are ratios in [0..1] reported by the JVM, which is a different source from the container CPU panel above (cAdvisor) -- expect them to differ. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 60
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "percentunit",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "decimals": 3
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "process_cpu_usage{job=\"keycloak-metrics\"}",
+     "legendFormat": "keycloak process",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "system_cpu_usage{job=\"keycloak-metrics\"}",
+     "legendFormat": "host",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "system_load_average_1m{job=\"keycloak-metrics\"}",
+     "legendFormat": "host load 1m",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 240,
+   "type": "row",
+   "title": "Database Connection Pool  (Agroal -> core-database)",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 68
+   },
+   "panels": []
+  },
+  {
+   "id": 241,
+   "type": "stat",
+   "title": "Connections Active",
+   "description": "agroal_active_count -- connections currently checked out by request threads. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 0,
+    "y": 69
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_active_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 242,
+   "type": "stat",
+   "title": "Connections Idle",
+   "description": "agroal_available_count -- established connections sitting idle in the pool, ready to serve without a handshake. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 6,
+    "y": 69
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_available_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 243,
+   "type": "stat",
+   "title": "Threads Awaiting a Connection",
+   "description": "agroal_awaiting_count. THE saturation signal for Keycloak: anything sustained above 0 means login requests are queueing for the database, not for CPU. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 12,
+    "y": 69
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 1
+       },
+       {
+        "color": "red",
+        "value": 5
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_awaiting_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 244,
+   "type": "stat",
+   "title": "Pool High-Water Mark",
+   "description": "agroal_max_used_count -- the most connections ever simultaneously in use since start. If this pins to the configured max pool size, the pool is the bottleneck. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 18,
+    "y": 69
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_max_used_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 245,
+   "type": "timeseries",
+   "title": "Pool state over time",
+   "description": "Active vs idle vs awaiting vs high-water mark. Read them together: active climbing while idle sits at 0 and awaiting rises is pool exhaustion. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 73
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_active_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "active",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_available_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "idle",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_awaiting_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "awaiting",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "D",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_max_used_count{job=\"keycloak-metrics\"})",
+     "legendFormat": "high-water mark",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 246,
+   "type": "timeseries",
+   "title": "Connection acquisition latency",
+   "description": "agroal_blocking_time_average_milliseconds and _max -- how long a thread waited to obtain a connection. These are cumulative-since-start gauges, not windowed, so they move slowly, and the max is a watermark that never falls. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 73
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "ms",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "max(agroal_blocking_time_average_milliseconds{job=\"keycloak-metrics\"})",
+     "legendFormat": "avg wait",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "max(agroal_blocking_time_max_milliseconds{job=\"keycloak-metrics\"})",
+     "legendFormat": "max wait (watermark)",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "max(agroal_creation_time_average_milliseconds{job=\"keycloak-metrics\"})",
+     "legendFormat": "avg connect time",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 247,
+   "type": "timeseries",
+   "title": "Connection acquisition rate",
+   "description": "rate(agroal_acquire_count_total[5m]) -- pool checkouts per second. With http_* metrics absent this is the closest available proxy for Keycloak request throughput. Not every request touches the database, so treat it as a floor, not a count. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 81
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "decimals": 3
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(rate(agroal_acquire_count_total{job=\"keycloak-metrics\"}[5m]))",
+     "legendFormat": "acquires/sec",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 248,
+   "type": "timeseries",
+   "title": "Connection churn",
+   "description": "Creation, destruction and reaping rates. Healthy steady state is near 0: the pool holds warm connections. Sustained churn means connections are being closed underneath Keycloak -- a database-side wait_timeout or an idle reap in between. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 81
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "decimals": 3
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(rate(agroal_creation_count_total{job=\"keycloak-metrics\"}[5m]))",
+     "legendFormat": "created/sec",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(rate(agroal_destroy_count_total{job=\"keycloak-metrics\"}[5m]))",
+     "legendFormat": "destroyed/sec",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(rate(agroal_reap_count_total{job=\"keycloak-metrics\"}[5m]))",
+     "legendFormat": "reaped/sec",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 249,
+   "type": "timeseries",
+   "title": "Pool faults (cumulative)",
+   "description": "Invalid connections rejected on validation, forced flushes, and detected leaks (connections held past the leak timeout). All three are 0 at build time. Any rise here is a genuine defect, not load. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 81
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_invalid_count_total{job=\"keycloak-metrics\"})",
+     "legendFormat": "invalid",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_flush_count_total{job=\"keycloak-metrics\"})",
+     "legendFormat": "flushed",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(agroal_leak_detection_count_total{job=\"keycloak-metrics\"})",
+     "legendFormat": "leaks detected",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 250,
+   "type": "row",
+   "title": "HTTP Worker Pool  (Vert.x -- request concurrency)",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 89
+   },
+   "panels": []
+  },
+  {
+   "id": 251,
+   "type": "stat",
+   "title": "Worker Tasks Active",
+   "description": "worker_pool_active on the vert.x-worker-thread pool -- blocking tasks executing right now. In Keycloak these are the authentication flows. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 0,
+    "y": 90
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(worker_pool_active{job=\"keycloak-metrics\",pool_name=\"vert.x-worker-thread\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 252,
+   "type": "stat",
+   "title": "Worker Threads Idle",
+   "description": "worker_pool_idle -- spare capacity in the worker pool. Reaching 0 while the queue grows is request saturation. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 6,
+    "y": 90
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(worker_pool_idle{job=\"keycloak-metrics\",pool_name=\"vert.x-worker-thread\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 253,
+   "type": "stat",
+   "title": "Worker Queue Depth",
+   "description": "worker_pool_queue_size -- tasks waiting for a worker thread. Sustained above 0 means logins are queueing. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 12,
+    "y": 90
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 1
+       },
+       {
+        "color": "red",
+        "value": 10
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(worker_pool_queue_size{job=\"keycloak-metrics\",pool_name=\"vert.x-worker-thread\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 254,
+   "type": "stat",
+   "title": "Tasks Rejected",
+   "description": "worker_pool_rejected_total -- work the pool refused outright. Non-zero means users were turned away, and this should never be non-zero. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 18,
+    "y": 90
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "short"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(worker_pool_rejected_total{job=\"keycloak-metrics\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 255,
+   "type": "timeseries",
+   "title": "Worker pool state",
+   "description": "Active, idle and queued, per pool. vert.x-worker-thread serves requests; vert.x-internal-blocking is framework-internal and is normally flat at zero. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 94
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "worker_pool_active{job=\"keycloak-metrics\"}",
+     "legendFormat": "active / {{pool_name}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "worker_pool_idle{job=\"keycloak-metrics\"}",
+     "legendFormat": "idle / {{pool_name}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "worker_pool_queue_size{job=\"keycloak-metrics\"}",
+     "legendFormat": "queued / {{pool_name}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 256,
+   "type": "timeseries",
+   "title": "Task throughput and queue delay",
+   "description": "Completion rate from worker_pool_completed_total, and the mean time a task spent queued before a thread picked it up, as rate(queue_delay_sum)/rate(queue_delay_count). The delay series is NO DATA while no tasks run in the window -- that is idleness, not breakage. Prometheus scraping of this endpoint began 2026-09-24; earlier ranges show NO DATA.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 94
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "decimals": 4
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(rate(worker_pool_completed_total{job=\"keycloak-metrics\"}[5m]))",
+     "legendFormat": "tasks/sec",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(rate(worker_pool_queue_delay_seconds_sum{job=\"keycloak-metrics\"}[5m])) / clamp_min(sum(rate(worker_pool_queue_delay_seconds_count{job=\"keycloak-metrics\"}[5m])), 0.0001)",
+     "legendFormat": "mean queue delay (s)",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 224,
+   "type": "text",
+   "title": "Scope, data protection, and what is still not instrumented",
+   "gridPos": {
+    "h": 12,
+    "w": 24,
+    "x": 0,
+    "y": 102
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "### What this reads\n\nTwo independent sources, deliberately kept separate:\n\n- **Identity activity** (rows 1-4) — `keycloak.event_entity` on `core-database`, the live event log of the core Keycloak (`utm-core/keycloak`, Keycloak **23.0.5**, served at `/keycloak/auth`). Verified at build time: **3,480 events**, 2026-08-26 → now, all in the `swim` realm.\n- **Runtime health** (rows 5-7) — Prometheus, scraping `/keycloak/auth/metrics` since **2026-09-24**. Any range before that date is legitimately **NO DATA**, not a failure. This dashboard defaults to `now-30d`, so narrow the time picker to see the runtime rows populated.\n\n### Data protection\n\n`grafana_ro` holds SELECT on counting columns only. Deliberately **not** granted, so unreachable even from Explore: `IP_ADDRESS`, `DETAILS_JSON`, `DETAILS_JSON_LONG_VALUE`, `SESSION_ID`, and every username/email column on `user_entity`. `USER_ID` is an opaque UUID used only for `COUNT(DISTINCT ...)` and is never displayed. The Prometheus metrics carry no personal data at all.\n\n### Runtime metrics — what was closed, and how\n\nAn earlier version of this panel said Keycloak published no Prometheus metrics at all. **That gap is now partially closed.** `KC_METRICS_ENABLED=true` and `KC_HEALTH_ENABLED=true` were set on the deployment; the rollout surged a new pod before removing the old one (`maxSurge` 1 / `maxUnavailable` 0, no PVC), so authentication was not interrupted. The endpoint now serves **153 metric lines**.\n\nScraping is via a dedicated headless `keycloak-metrics` Service plus a ServiceMonitor, because the existing `keycloak` Service carries no labels for a selector to match and is a NodePort serving live authentication — not something to edit for a scrape. No existing object was modified. Target is `up`, job label `keycloak-metrics`.\n\n**Now available, and shown above:** JVM heap and memory pools, GC pause and overhead, threads by state, process and host CPU, file descriptors, uptime; the full Agroal database connection pool; and the Vert.x worker pool.\n\n### Remaining gap — still honestly absent\n\n| Wanted | Metric family | Status |\n|---|---|---|\n| Login / registration / token-issuance counters | `keycloak_*` | **NOT INSTRUMENTED** |\n| HTTP request rate, latency, status codes | `http_server_requests_*` | **NOT INSTRUMENTED** |\n\nThese are **not** switched on by `KC_METRICS_ENABLED`. They come from the separate **keycloak-metrics-spi** extension, which is not bundled in this image and would have to be added to the container build. Nothing on this dashboard fabricates them.\n\nTwo partial substitutes are drawn above and labelled as such: **Connection acquisition rate** is a floor on request throughput (not every request reaches the database), and **Task throughput** counts Vert.x worker tasks. For authentication *outcomes* — who failed and why — the `event_entity` rows above remain the better source, because they carry the error reason, which a counter never would.\n\n### Event-log retention\n\nKeycloak expires events per realm (`realm.events_expiration`). If that is set, this dashboard's event history is bounded by it — a flat older region means expiry, not inactivity.\n"
+   },
+   "pluginVersion": "12.1.1"
+  }
+ ]
+}

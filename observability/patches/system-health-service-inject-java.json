@@ -1,0 +1,1 @@
+{"spec":{"template":{"metadata":{"annotations":{"instrumentation.opentelemetry.io/inject-java":"utm-services/utm-app-tracing"}}}}}

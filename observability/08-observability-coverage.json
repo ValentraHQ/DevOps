@@ -1,0 +1,1361 @@
+{
+ "uid": "utm-obs-08-coverage",
+ "title": "08 - Observability Coverage",
+ "description": "**Purpose:** state honestly which parts of the UTM platform are observable and which are not. This dashboard exists so that a silent gap is never mistaken for a healthy signal.\n\n**Data sources:** Prometheus (self-inspection: targets, ServiceMonitors, blackbox probes, kube-state-metrics inventory).\n\n**Design rule:** no panel on this dashboard renders an empty chart to represent a missing capability. Gaps are declared as text with the evidence that proves them, because an empty time series reads as *nothing is wrong* rather than *nothing is being measured*.\n\n**Current headline gaps:** UTM application services expose no Prometheus metrics (no RED); application logs do not exist; synthetic probe coverage is ~9% of ingresses; Jaeger traces stop at 2026-04-14.",
+ "tags": [
+  "utm-observability",
+  "coverage",
+  "gaps"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 1,
+ "weekStart": "",
+ "refresh": "5m",
+ "preload": false,
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 101,
+   "type": "row",
+   "title": "Prometheus Coverage — infrastructure vs application",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 102,
+   "type": "stat",
+   "title": "UTM Pods Visible",
+   "description": "Pods in utm-* namespaces known to Prometheus via kube-state-metrics. This is INFRASTRUCTURE visibility, not application instrumentation.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(kube_pod_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 103,
+   "type": "stat",
+   "title": "UTM Services",
+   "description": "Kubernetes Services across utm-* namespaces.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(kube_service_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 104,
+   "type": "stat",
+   "title": "ServiceMonitors",
+   "description": "Total ServiceMonitor scrape configurations cluster-wide.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(count by (job) (up))",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 105,
+   "type": "stat",
+   "title": "Scrape Targets",
+   "description": "Total Prometheus scrape targets.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(up)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 106,
+   "type": "stat",
+   "title": "Targets Down",
+   "description": "Scrape targets currently failing.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(up == 0) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 107,
+   "type": "stat",
+   "title": "UTM App Metrics",
+   "description": "Prometheus series exposed by UTM application services themselves. Zero means no UTM service is instrumented into Prometheus.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "orange",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count({namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\",__name__=~\"http_.*|grpc_.*\"}) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 108,
+   "type": "row",
+   "title": "Service-Level RED Metrics",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "id": 109,
+   "type": "text",
+   "title": "Application RED Metrics — NOT INSTRUMENTED",
+   "gridPos": {
+    "h": 20,
+    "w": 12,
+    "x": 0,
+    "y": 6
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "# Status: **NOT INSTRUMENTED**\n\nRequest Rate, Error Rate and Duration are still **not available from any UTM application itself**. No UTM service exposes a Prometheus endpoint.\n\n### Verified evidence (re-measured 2026-09-24)\n\n| Check | Result |\n|---|---|\n| Prometheus `http_*` / `grpc_*` series from utm-* | **0** |\n| ServiceMonitors targeting utm-* namespaces | **1** — `utm-core/keycloak`, added by this work |\n| Services in utm-* namespaces | **85** |\n| Deployments in `utm-services` alone | **38** |\n\nThe single utm-* ServiceMonitor scrapes **Keycloak's JVM and database pool**, not application request metrics. It does not close this gap; see *11 - Keycloak Identity*.\n\n### Two partial substitutes now exist\n\nNeither is application RED, and neither is presented as such:\n\n| Substitute | What it genuinely gives | What it cannot give |\n|---|---|---|\n| **Ingress edge metrics** — `nginx_ingress_controller_*` (**52** request series, **624** duration-histogram buckets, **2** hosts) | Rate, status class and latency for traffic crossing the ingress, per host and path | Nothing about service-to-service calls, which never touch the ingress; no internal error detail |\n| **Keycloak Agroal pool** — `agroal_acquire_count_total` | A *floor* on Keycloak request throughput | Only Keycloak, only requests that reach the database |\n\n### What is still unanswerable\n\n- What is the request rate to `operation-plan-service`?\n- What percentage of its requests return 5xx?\n- What is p95 latency for `conflict-detection`?\n\nIngress metrics answer these only for calls that enter through the ingress, and only by host/path — not per service, and not for internal traffic.\n\n### To close this gap\n\n1. Expose a Prometheus `/metrics` endpoint on each UTM service (Spring Boot: Micrometer + actuator; these are Spring Boot applications, so this is largely configuration).\n2. Add a ServiceMonitor per service — or one with a shared label selector — carrying the label `release: kube-prometheus-stack`, which is what the Prometheus CR selects on. The pattern is already proven three times in this cluster: `rook-ceph-mgr`, `ingress-nginx-controller` and `keycloak`.\n\nAn empty RED chart is deliberately NOT shown here: it would imply zero traffic and zero errors, which is a materially different claim from *not measured*.\n"
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  },
+  {
+   "id": 110,
+   "type": "text",
+   "title": "Application Logs — AVAILABLE (Loki)",
+   "gridPos": {
+    "h": 20,
+    "w": 12,
+    "x": 12,
+    "y": 6
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "# Status: **AVAILABLE**\n\n**Datasource:** `Loki` (uid `loki-uid`), `http://loki.utm-statistics.svc.cluster.local:3100`\n**Shipper:** `alloy-logs` DaemonSet (`grafana/alloy:v1.20.1`), tails `/var/log/pods` on every node, CRI-parsed, labeled by `namespace`/`pod`/`container`/`node`\n**Retention:** 14 days (`336h`), compactor-enforced, 30Gi bounded PVC — see `loki-config.yaml` header for why bounded retention matters on this cluster\n\n### Verified evidence\n\n- Grafana datasource health check: `{\"message\":\"Data source successfully connected.\",\"status\":\"OK\"}`\n- `alloy-logs` pods `1/1 Running` on all 4 nodes (`node-004` included — hostPath/CRI collection has no Ceph CSI dependency, unlike Loki's own PVC)\n- Real cluster log data confirmed flowing, not just a manual test push — a `{namespace=\"utm-statistics\"}` query returned live entries labeled with pods from `utm-services`, `monitoring`, and other namespaces across multiple nodes\n\n### What this fixes\n\n- Log search and log-based panels are now possible via the `Loki` datasource.\n- **Jaeger and Tempo trace-to-logs correlation**, previously broken (`tracesToLogsV2.datasourceUid` pointed at the empty `es-logs-uid` index below), now points at `loki-uid` and resolves to real log lines.\n\n### Still open, separately\n\n`utm-services-logs` (uid `es-logs-uid`, index `utm-services-logs*`) is a **different** gap: app-level structured logs shipped to Elasticsearch, not Loki's container-log stream. That index is still genuinely absent (`_shards.total: 0` on `_count`) and remains its own, separate, not-yet-proposed piece of work."
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  },
+  {
+   "id": 111,
+   "type": "row",
+   "title": "Endpoint (Synthetic) Monitoring Coverage",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 26
+   },
+   "panels": []
+  },
+  {
+   "id": 112,
+   "type": "stat",
+   "title": "Ingresses",
+   "description": "Total Ingress objects across utm-* namespaces.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 0,
+    "y": 27
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(kube_ingress_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 113,
+   "type": "stat",
+   "title": "Probed Endpoints",
+   "description": "Targets covered by blackbox-exporter.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 5,
+    "y": 27
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(probe_success)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 114,
+   "type": "stat",
+   "title": "Endpoint Coverage",
+   "description": "Probed endpoints as a share of Ingress objects.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 10,
+    "y": 27
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 25
+       },
+       {
+        "color": "#EAB839",
+        "value": 60
+       },
+       {
+        "color": "green",
+        "value": 90
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percent",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(probe_success) / count(kube_ingress_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}) * 100",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 115,
+   "type": "stat",
+   "title": "Probes Succeeding",
+   "description": "Blackbox probes currently returning success. Below the probed count means monitored endpoints are DOWN.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 15,
+    "y": 27
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(probe_success)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 116,
+   "type": "stat",
+   "title": "Uncovered Endpoints",
+   "description": "Ingresses with no synthetic probe.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 19,
+    "y": 27
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "orange",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(kube_ingress_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}) - count(probe_success)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 117,
+   "type": "table",
+   "title": "Blackbox Probe Status",
+   "description": "Per-target probe result. 0 = failing.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 0,
+    "y": 31
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Success"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "basic"
+        }
+       },
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "0": {
+            "text": "FAILING",
+            "color": "red",
+            "index": 0
+           },
+           "1": {
+            "text": "OK",
+            "color": "green",
+            "index": 1
+           }
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "probe_success",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    }
+   ],
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "__name__": true,
+       "container": true,
+       "endpoint": true,
+       "namespace": true,
+       "pod": true,
+       "service": true
+      },
+      "renameByName": {
+       "instance": "Target",
+       "job": "Job",
+       "Value": "Success"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": 118,
+   "type": "timeseries",
+   "title": "Probe Success Trend",
+   "description": "Synthetic probe results over time.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 7,
+    "w": 12,
+    "x": 12,
+    "y": 31
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     },
+     "min": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "last",
+      "min"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "probe_success",
+     "legendFormat": "{{instance}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 119,
+   "type": "row",
+   "title": "Tracing Coverage",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 38
+   },
+   "panels": []
+  },
+  {
+   "id": 120,
+   "type": "text",
+   "title": "Distributed Tracing — STALE",
+   "gridPos": {
+    "h": 20,
+    "w": 12,
+    "x": 0,
+    "y": 39
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "# Status: **STALE DATA**\n\nJaeger is connected to Grafana and holds roughly **5,145 spans**, but the backing indices are:\n\n```\njaeger-jaeger-span-2026-03-19    1292\njaeger-jaeger-span-2026-03-23     383\njaeger-jaeger-span-2026-04-08     100\njaeger-jaeger-span-2026-04-14    3360\n```\n\nThe most recent span index is **2026-04-14**. Jaeger is **not** live application tracing and must not be read as such.\n\n### Additional limitation\n\nThe Jaeger datasource is configured with `tracesToLogsV2` pointing at `es-logs-uid` — the log datasource whose index does not exist. Trace→log navigation is therefore non-functional.\n\n### Navigation\n\nTracing remains available for historical investigation via **Explore → Jaeger** and **Explore → Tempo**. It is intentionally not embedded as a live panel in this suite, because doing so would imply current trace coverage that does not exist."
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  },
+  {
+   "id": 121,
+   "type": "text",
+   "title": "Coverage Summary & Alerting Data",
+   "gridPos": {
+    "h": 20,
+    "w": 12,
+    "x": 12,
+    "y": 39
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "# Observability coverage at a glance\n\nRe-measured 2026-10-02.\n\n| Layer | Status | Evidence |\n|---|---|---|\n| Kubernetes infrastructure | ✅ **COVERED** | kube-state-metrics, 69 utm pods visible |\n| Node resources | ✅ **COVERED** | node-exporter on all 4 nodes |\n| Ceph / storage | ✅ **COVERED** | ceph-mgr scraped (ServiceMonitor added by this work) |\n| PVC utilisation | ✅ **COVERED** | kubelet volume stats |\n| Ingress edge (rate / status / latency) | ✅ **COVERED** | `nginx_ingress_controller_*`, 52 request series, 624 histogram buckets (ServiceMonitor added by this work) |\n| Identity provider runtime | ✅ **COVERED** | Keycloak JVM, GC, threads, Agroal DB pool, Vert.x worker pool — 159 series (ServiceMonitor added by this work) |\n| Application logs | ✅ **COVERED** | Loki + `alloy-logs` DaemonSet (added by this work); health check OK, real log data verified flowing from multiple namespaces across all 4 nodes |\n| Business data (ES) | ⚠️ **HISTORICAL** | datasets end Aug 2026 at the latest |\n| Endpoint uptime | ⚠️ **PARTIAL** | 3 of 32 ingresses probed |\n| Distributed tracing | ⚠️ **STALE** | newest span index 2026-04-14 |\n| Keycloak login / token counters | ❌ **NOT INSTRUMENTED** | needs the `keycloak-metrics-spi` extension, not bundled in this image |\n| Application RED metrics | ❌ **NOT INSTRUMENTED** | 0 `http_*`/`grpc_*` series from utm-*; no UTM service exposes `/metrics` |\n| App-level structured logs (ES) | ❌ **NOT AVAILABLE** | `utm-services-logs*` index still does not exist — separate from container logs above, not yet proposed |\n\nScrape footprint: **16** distinct jobs, **53** targets. Panel *Targets Down* above is live — treat any non-zero value as current, not as a figure quoted here.\n\n---\n\n### Alert history\n\n`utm-alerting-statistics` contains **0 documents** across all four of its indices. No alert-history panel is built from it — charting an empty index would render a flat line that looks like *no alerts fired*, when the truth is *nothing was ever recorded*.\n\nAlerting state should come from **Grafana Alerting / Prometheus** instead. Rules are supplied with this suite in `alert-rules.yaml`.\n"
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  }
+ ]
+}

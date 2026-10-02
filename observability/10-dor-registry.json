@@ -1,0 +1,2428 @@
+{
+ "uid": "utm-obs-10-dor",
+ "title": "10 - DOR Registry",
+ "description": "**Purpose:** operational view of the Drone Operator Registry — operator onboarding, verification backlog, fleet inventory and registration validity.\n\n**Data source:** `dor-be-mysql` — the LIVE `dor_be` MariaDB schema on `core-database`, via a SELECT-only, column-scoped `grafana_ro` account.\n\n**Privacy:** no personal data is queried or displayed. Names, emails, phones, birthdates, addresses and document identifiers are not granted to the Grafana account.\n\n**Interpretation:** the registration funnel is cumulative — each stage is a strict subset of the previous one, so a narrowing funnel is normal and the gaps are backlog.\n\n**Performance:** this queries a live transactional database serving the /pm/ portal. All panels aggregate; refresh is 5m by design. Do not lower it.",
+ "tags": [
+  "utm-observability",
+  "dor",
+  "registry"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 0,
+ "weekStart": "",
+ "refresh": "5m",
+ "preload": false,
+ "time": {
+  "from": "now-1y",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 101,
+   "type": "row",
+   "title": "Registry Overview",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 102,
+   "type": "stat",
+   "title": "Operators",
+   "description": "Rows in `organisations`. An operator is an organisation in the registry.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 103,
+   "type": "stat",
+   "title": "Verified Operators",
+   "description": "organisations.verified = 1.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations WHERE verified = 1",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 104,
+   "type": "stat",
+   "title": "Active Operators",
+   "description": "organisations.active = 1.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations WHERE active = 1",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 105,
+   "type": "stat",
+   "title": "Registered Users",
+   "description": "Rows in `users` — individuals, not organisations.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM users",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 106,
+   "type": "stat",
+   "title": "Drones",
+   "description": "Rows in `drones` (the UAS subtype of `assets`).",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM drones",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 107,
+   "type": "stat",
+   "title": "Assets",
+   "description": "All fleet assets, drones included.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM assets",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 108,
+   "type": "row",
+   "title": "Registration Funnel & Operator Status",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "id": 109,
+   "type": "barchart",
+   "title": "Registration Funnel — Registered → Verified → Active",
+   "description": "Each stage is a strict subset of the one before: every organisation is Registered; Verified adds verified=1; Active adds active=1 on top of verified. A wide gap between stages is onboarding backlog, not an error.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 0,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT '1 Registered' AS stage, COUNT(*) AS operators FROM organisations\nUNION ALL\nSELECT '2 Verified',  COUNT(*) FROM organisations WHERE verified = 1\nUNION ALL\nSELECT '3 Active',    COUNT(*) FROM organisations WHERE verified = 1 AND active = 1\nORDER BY stage",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 110,
+   "type": "barchart",
+   "title": "Operators by Status",
+   "description": "Cross-tab of organisations.verified and organisations.active. 'Awaiting Verification' is the actionable bucket — active but not yet verified.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 12,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT\n  CASE\n    WHEN verified = 1 AND active = 1 THEN 'Verified & Active'\n    WHEN verified = 1 AND active = 0 THEN 'Verified, Inactive'\n    WHEN verified = 0 AND active = 1 THEN 'Awaiting Verification'\n    ELSE 'Unverified & Inactive'\n  END AS status,\n  COUNT(*) AS operators\nFROM organisations\nGROUP BY status\nORDER BY operators DESC",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 111,
+   "type": "row",
+   "title": "Verification Backlog",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 15
+   },
+   "panels": []
+  },
+  {
+   "id": 112,
+   "type": "stat",
+   "title": "Operators Awaiting Verification",
+   "description": "organisations.verified = 0. These cannot complete onboarding.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 0,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations WHERE verified = 0",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 113,
+   "type": "stat",
+   "title": "Users Awaiting Verification",
+   "description": "users.verified = 0.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 5,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM users WHERE verified = 0",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 114,
+   "type": "stat",
+   "title": "Oldest Unverified Operator",
+   "description": "Age of the longest-waiting unverified organisation. The number that matters for onboarding SLA — a small backlog that is very old is still a problem.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 10,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 7
+       },
+       {
+        "color": "red",
+        "value": 30
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "d"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT IFNULL(MAX(DATEDIFF(NOW(), created_at)), 0) AS value FROM organisations WHERE verified = 0",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 115,
+   "type": "table",
+   "title": "Unverified Operators",
+   "description": "Organisations with verified = 0, oldest first. `name` is a company name, not personal data. No contact details are queried — the Grafana account has no grant on phone, VAT or address columns.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 8,
+    "x": 16,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Days Waiting"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "gradient"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "green",
+           "value": null
+          },
+          {
+           "color": "#EAB839",
+           "value": 7
+          },
+          {
+           "color": "red",
+           "value": 30
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Days Waiting"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT name AS Operator, created_at AS Registered, DATEDIFF(NOW(), created_at) AS `Days Waiting`, IF(active = 1, 'active', 'inactive') AS Status FROM organisations WHERE verified = 0 ORDER BY created_at ASC LIMIT 50",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 116,
+   "type": "row",
+   "title": "Fleet — Drones per Operator & Assets",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 21
+   },
+   "panels": []
+  },
+  {
+   "id": 117,
+   "type": "table",
+   "title": "Drones per Operator",
+   "description": "LEFT JOIN so operators with no fleet still appear as 0 — a registered operator with zero drones is meaningful, and an inner join would hide it. `drones` is the UAS subtype of `assets`, keyed on the same asset_id.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 0,
+    "y": 22
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Drones"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "gradient"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": true,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Drones"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT o.name AS Operator,\n       COUNT(DISTINCT d.asset_id) AS Drones,\n       COUNT(DISTINCT a.asset_id) AS `Total Assets`\nFROM organisations o\nLEFT JOIN assets a ON a.org_id = o.org_id\nLEFT JOIN drones d ON d.asset_id = a.asset_id\nGROUP BY o.org_id, o.name\nORDER BY Drones DESC, `Total Assets` DESC\nLIMIT 50",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 118,
+   "type": "barchart",
+   "title": "Drones by UAS Class",
+   "description": "drones.uas_class — the EU open-category class marking (C0–C4).",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 6,
+    "x": 12,
+    "y": 22
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT IFNULL(NULLIF(uas_class, ''), 'unspecified') AS uas_class, COUNT(*) AS drones FROM drones GROUP BY uas_class ORDER BY drones DESC",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 119,
+   "type": "barchart",
+   "title": "Assets by Type",
+   "description": "assets.type across the whole registry.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 6,
+    "x": 18,
+    "y": 22
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT IFNULL(NULLIF(type, ''), 'unspecified') AS type, COUNT(*) AS assets FROM assets GROUP BY type ORDER BY assets DESC",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 120,
+   "type": "timeseries",
+   "title": "Asset Registrations Over Time",
+   "description": "assets.created_at, bucketed daily. Shows fleet growth.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 31
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "time_series",
+     "rawSql": "SELECT DATE(created_at) AS time, COUNT(*) AS 'assets registered' FROM assets GROUP BY DATE(created_at) ORDER BY time",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 121,
+   "type": "timeseries",
+   "title": "Operator Registrations Over Time",
+   "description": "organisations.created_at, bucketed daily.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 31
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "time_series",
+     "rawSql": "SELECT DATE(created_at) AS time, COUNT(*) AS 'operators registered' FROM organisations GROUP BY DATE(created_at) ORDER BY time",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 122,
+   "type": "row",
+   "title": "Registration & Verification Documents",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 39
+   },
+   "panels": []
+  },
+  {
+   "id": 123,
+   "type": "stat",
+   "title": "Org Registration Documents",
+   "description": "Rows in organisation_registration_documents.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 0,
+    "y": 40
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisation_registration_documents",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 124,
+   "type": "stat",
+   "title": "User Verification Documents",
+   "description": "Rows in user_verification_documents.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 5,
+    "y": 40
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM user_verification_documents",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 125,
+   "type": "stat",
+   "title": "Operators With No Registration Document",
+   "description": "Organisations that have never uploaded a registration document — usually the reason an operator is stuck unverified.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 10,
+    "y": 40
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations o WHERE NOT EXISTS (SELECT 1 FROM organisation_registration_documents d WHERE d.org_id = o.org_id)",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 126,
+   "type": "table",
+   "title": "Document Activity by Operator",
+   "description": "Per-organisation document counts and most recent upload. File names and document UUIDs are deliberately NOT queried — the Grafana account has no grant on those columns.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 8,
+    "x": 16,
+    "y": 40
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Documents"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT o.name AS Operator, COUNT(d.ovd_id) AS Documents, MAX(d.updated_at) AS `Last Upload` FROM organisations o LEFT JOIN organisation_registration_documents d ON d.org_id = o.org_id GROUP BY o.org_id, o.name ORDER BY Documents DESC LIMIT 50",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 127,
+   "type": "row",
+   "title": "Registration Number Validity",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 45
+   },
+   "panels": []
+  },
+  {
+   "id": 128,
+   "type": "stat",
+   "title": "Expired Registrations",
+   "description": "organisations.reg_no_expires_at in the past. These operators are no longer validly registered.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 0,
+    "y": 46
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations WHERE reg_no_expires_at IS NOT NULL AND reg_no_expires_at < CURDATE()",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 129,
+   "type": "stat",
+   "title": "Expiring Within 30 Days",
+   "description": "Registrations lapsing soon — the actionable renewal queue.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 6,
+    "y": 46
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations WHERE reg_no_expires_at IS NOT NULL AND reg_no_expires_at BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 130,
+   "type": "stat",
+   "title": "No Registration Number",
+   "description": "organisations.registration_no is NULL or empty.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 12,
+    "y": 46
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations WHERE registration_no IS NULL OR registration_no = ''",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 131,
+   "type": "stat",
+   "title": "Legal Entities",
+   "description": "organisations.legal_entity = 1 (company rather than individual operator).",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 46
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM organisations WHERE legal_entity = 1",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 132,
+   "type": "row",
+   "title": "Identity Sync Health — Keycloak vs DOR database",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 51
+   },
+   "panels": []
+  },
+  {
+   "id": 133,
+   "type": "stat",
+   "title": "Keycloak Identities (utm-dor)",
+   "description": "Users in the Keycloak utm-dor realm. Counts identities only — no credentials, attributes or sessions are readable by this account.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 0,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM dor_keycloak.user_entity ue JOIN dor_keycloak.realm r ON r.id = ue.realm_id WHERE r.name = 'utm-dor'",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 134,
+   "type": "stat",
+   "title": "DOR Database Users",
+   "description": "Rows in dor_be.users.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 6,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT COUNT(*) AS value FROM dor_be.users",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 135,
+   "type": "stat",
+   "title": "Sync Divergence",
+   "description": "Absolute difference between the two. SHOULD BE 0. Any non-zero value means an account exists on one side only — the signature of a half-completed registration.",
+   "datasource": {
+    "type": "mysql",
+    "uid": "dor-be-mysql"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 12,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "mysql",
+      "uid": "dor-be-mysql"
+     },
+     "format": "table",
+     "rawSql": "SELECT ABS( (SELECT COUNT(*) FROM dor_keycloak.user_entity ue JOIN dor_keycloak.realm r ON r.id = ue.realm_id WHERE r.name = 'utm-dor') - (SELECT COUNT(*) FROM dor_be.users) ) AS value",
+     "rawQuery": true,
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "id": 136,
+   "type": "text",
+   "title": "Why this matters",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 52
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "**Divergence should be 0.**\n\n`com.skyzr.keycloak` (in `basic-storage-provider-1.0.jar`) is compiled against `javax.ws.rs` but runs on **Keycloak 25**, which uses `jakarta.ws.rs`. REGISTER events therefore fail with `NoClassDefFoundError: javax/ws/rs/core/Response$Status` **after** the Keycloak identity is created but **before** DOR provisioning finishes.\n\nResult: an identity exists in Keycloak with no usable DOR account — the user can authenticate but every admin action on them returns 500 (`User could not be found in Keycloak`, or the reverse).\n\nThis panel makes an otherwise silent defect visible. It is a **detector, not a fix** — the JAR must be rebuilt against Jakarta."
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  },
+  {
+   "id": 137,
+   "type": "text",
+   "title": "Scope, data protection and current volume",
+   "gridPos": {
+    "h": 10,
+    "w": 24,
+    "x": 0,
+    "y": 57
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "### What this dashboard reads\n\nElasticsearch-backed dashboards in this suite read historical statistics copies. **This one queries `dor_be` directly** — the live MariaDB behind the `/pm/` portal. Figures are current, not a snapshot.\n\nBecause it is a live transactional database, every panel aggregates and the dashboard refreshes at **5m**, not the 30s used for infrastructure dashboards.\n\n### Data protection\n\nGrafana connects as `grafana_ro`, which holds **SELECT-only, column-scoped** grants on `dor_be`. Not granted, and therefore unreachable even from Explore:\n\n- `users.email`, `first_name`, `last_name`, `phone`, `birthdate`\n- `users.internal_notes`, `activity_log`, `pilot_number`, `skid`\n- `organisations.phone`, `vat_no`, `org_id_no`, `insurance_no`, `internal_notes`\n- document `file_name` and `*_uuid` columns\n- the entire `addresses` table\n\nOrganisation **names** are shown — those are company identifiers, not personal data."
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  }
+ ]
+}

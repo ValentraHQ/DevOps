@@ -1,0 +1,345 @@
+# UTM Observability alert rules.
+#
+# Delivered as a PrometheusRule CRD because kube-prometheus-stack (with
+# Alertmanager) is already running — this reuses the existing alerting
+# pipeline rather than introducing a second one.
+#
+# The `release: kube-prometheus-stack` label is what makes the Prometheus CR
+# select this object (ruleSelector), exactly as with the ServiceMonitor.
+#
+# NOTE: no rule here is derived from `utm-alerting-statistics`. That index
+# contains 0 documents, so any rule built on it would be permanently silent
+# while appearing configured.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: utm-observability
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    app: utm-observability
+spec:
+  groups:
+    # =====================================================================
+    - name: utm-platform-critical
+      interval: 30s
+      rules:
+        - alert: UTMNodeNotReady
+          expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 5m
+          labels: {severity: critical, component: node}
+          annotations:
+            summary: "Node {{ $labels.node }} is not Ready"
+            description: "Node {{ $labels.node }} has been NotReady for over 5 minutes."
+            runbook: "Check kubelet, then dashboard 03 - Nodes & Cluster Resources."
+
+        - alert: UTMNodeDiskCritical
+          expr: |
+            (node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}
+             - node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"})
+            / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"} * 100 > 90
+          for: 10m
+          labels: {severity: critical, component: node}
+          annotations:
+            summary: "Node {{ $labels.instance }} root filesystem above 90%"
+            description: "Root filesystem at {{ $value | humanize }}%. Ceph MONs raise MON_DISK_LOW below ~30% free, which degrades storage I/O and cascades into liveness-probe failures."
+
+        - alert: UTMCephUnhealthy
+          expr: ceph_health_status > 1
+          for: 5m
+          labels: {severity: critical, component: ceph}
+          annotations:
+            summary: "Ceph cluster in HEALTH_ERR"
+            description: "ceph_health_status = {{ $value }} (2 = HEALTH_ERR). See dashboard 04."
+
+        - alert: UTMCephOSDDown
+          expr: (sum(ceph_osd_in) - sum(ceph_osd_up)) > 0
+          for: 5m
+          labels: {severity: critical, component: ceph}
+          annotations:
+            summary: "One or more Ceph OSDs are down"
+            description: "{{ $value }} OSD(s) are in but not up. Data redundancy is reduced."
+
+        - alert: UTMCephMonQuorumLost
+          expr: sum(ceph_mon_quorum_status) < 2
+          for: 2m
+          labels: {severity: critical, component: ceph}
+          annotations:
+            summary: "Ceph monitor quorum degraded"
+            description: "Only {{ $value }} monitor(s) in quorum. Losing quorum halts all cluster I/O."
+
+        - alert: UTMDeploymentUnavailable
+          expr: |
+            kube_deployment_status_replicas_available{namespace=~"utm-.*"} == 0
+            and kube_deployment_status_replicas{namespace=~"utm-.*"} > 0
+          for: 10m
+          labels: {severity: critical, component: workload}
+          annotations:
+            summary: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has no available replicas"
+            description: "Desired replicas exist but none are available for over 10 minutes."
+
+        - alert: UTMExcessivePodRestarts
+          expr: |
+            increase(kube_pod_container_status_restarts_total{namespace=~"utm-.*"}[1h]) > 20
+          for: 5m
+          labels: {severity: critical, component: workload}
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} restarting excessively"
+            description: "{{ $value | humanize }} restarts in the last hour for container {{ $labels.container }}. See the Restart Leaderboard on dashboard 01."
+
+        - alert: UTMContainerOOMKilled
+          expr: |
+            increase(kube_pod_container_status_restarts_total{namespace=~"utm-.*"}[15m]) > 0
+            and on(namespace, pod, container)
+            kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+          for: 5m
+          labels: {severity: critical, component: workload}
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} OOMKilled"
+            description: "Container {{ $labels.container }} was killed for exceeding its memory limit."
+
+        - alert: UTMPVCCriticallyFull
+          expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100 > 90
+          for: 10m
+          labels: {severity: critical, component: storage}
+          annotations:
+            summary: "PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} above 90%"
+            description: "PVC is {{ $value | humanize }}% full. Workloads will begin failing writes."
+
+    # =====================================================================
+    - name: utm-platform-warning
+      interval: 60s
+      rules:
+        - alert: UTMPodRestartRateRising
+          expr: |
+            sum by (namespace, pod) (
+              rate(kube_pod_container_status_restarts_total{namespace=~"utm-.*"}[15m])
+            ) > 0
+          for: 15m
+          labels: {severity: warning, component: workload}
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} is restarting"
+            description: "Sustained non-zero restart rate over 15 minutes — an active crash loop rather than historical damage."
+
+        - alert: UTMNodeDiskWarning
+          expr: |
+            (node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}
+             - node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"})
+            / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"} * 100 > 80
+          for: 15m
+          labels: {severity: warning, component: node}
+          annotations:
+            summary: "Node {{ $labels.instance }} root filesystem above 80%"
+            description: "Root filesystem at {{ $value | humanize }}%. Approaching the level where Ceph MONs report low space."
+
+        - alert: UTMNodeMemoryPressure
+          expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+          for: 10m
+          labels: {severity: warning, component: node}
+          annotations:
+            summary: "Node {{ $labels.node }} under memory pressure"
+
+        - alert: UTMCephHealthWarn
+          expr: ceph_health_status == 1
+          for: 30m
+          labels: {severity: warning, component: ceph}
+          annotations:
+            summary: "Ceph cluster in HEALTH_WARN"
+            description: "Sustained HEALTH_WARN for 30 minutes. Common causes here: MON_DISK_LOW and BLUESTORE_SLOW_OP_ALERT."
+
+        - alert: UTMCephSlowOps
+          expr: sum(ceph_healthcheck_slow_ops) > 0
+          for: 10m
+          labels: {severity: warning, component: ceph}
+          annotations:
+            summary: "Ceph reporting slow operations"
+            description: "{{ $value }} slow op(s). On HDD-backed OSDs this cascades into Kubernetes liveness-probe timeouts."
+
+        - alert: UTMCephOSDHighLatency
+          expr: max(ceph_osd_apply_latency_ms) > 500
+          for: 15m
+          labels: {severity: warning, component: ceph}
+          annotations:
+            summary: "Ceph OSD apply latency above 500ms"
+            description: "Peak apply latency {{ $value | humanize }}ms — the leading indicator of BlueStore slow operations."
+
+        - alert: UTMDeploymentDegraded
+          expr: |
+            kube_deployment_status_replicas_unavailable{namespace=~"utm-.*"} > 0
+          for: 15m
+          labels: {severity: warning, component: workload}
+          annotations:
+            summary: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} degraded"
+            description: "{{ $value }} replica(s) unavailable for over 15 minutes — not a transient rollout."
+
+        - alert: UTMPodPending
+          expr: kube_pod_status_phase{phase="Pending",namespace=~"utm-.*"} == 1
+          for: 15m
+          labels: {severity: warning, component: workload}
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} stuck Pending"
+            description: "Pending for over 15 minutes — usually unschedulable, or a missing/unbound PVC."
+
+        - alert: UTMEndpointDown
+          expr: probe_success == 0
+          for: 5m
+          labels: {severity: warning, component: endpoint}
+          annotations:
+            summary: "Synthetic probe failing for {{ $labels.instance }}"
+            description: "Blackbox probe has been failing for 5 minutes."
+
+        - alert: UTMPrometheusTargetDown
+          expr: up == 0
+          for: 10m
+          labels: {severity: warning, component: monitoring}
+          annotations:
+            summary: "Prometheus target down: {{ $labels.job }}"
+            description: "A scrape target is unreachable — monitoring coverage itself is degraded."
+
+    # =====================================================================
+    - name: utm-observability-coverage
+      interval: 300s
+      rules:
+        - alert: UTMCephMetricsMissing
+          expr: absent(ceph_health_status)
+          for: 15m
+          labels: {severity: warning, component: monitoring}
+          annotations:
+            summary: "Ceph metrics absent from Prometheus"
+            description: "ceph_health_status is not present. The rook-ceph-mgr ServiceMonitor may have been removed — dashboard 04 will silently show no data."
+
+        - alert: UTMKubeStateMetricsMissing
+          expr: absent(kube_pod_info{namespace=~"utm-.*"})
+          for: 10m
+          labels: {severity: critical, component: monitoring}
+          annotations:
+            summary: "kube-state-metrics not reporting UTM pods"
+            description: "The entire Platform Health dashboard depends on this. Absence means blind, not healthy."
+    # =====================================================================
+    # Keycloak identity-provider runtime.
+    #
+    # These became possible only once KC_METRICS_ENABLED=true was set and the
+    # keycloak-metrics Service + ServiceMonitor were added. Every threshold
+    # below is set against measured idle behaviour on this instance
+    # (2026-09-24): heap utilisation 0.046, GC overhead 0.0, pool high-water
+    # mark 2, awaiting 0, worker queue 0, rejected 0.
+    #
+    # Deliberately NOT written: any rule on login rate, login failures or
+    # token issuance. Those counters do not exist in this image (they need
+    # keycloak-metrics-spi), and a rule on an absent series is permanently
+    # silent while appearing configured. Authentication failures are visible
+    # on dashboard 11 from keycloak.event_entity instead.
+    - name: utm-identity-critical
+      interval: 30s
+      rules:
+        - alert: KeycloakDBPoolExhausted
+          expr: agroal_awaiting_count{job="keycloak-metrics"} > 0
+          for: 5m
+          labels: {severity: critical, component: identity}
+          annotations:
+            summary: "Keycloak threads are queueing for a database connection"
+            description: "agroal_awaiting_count has been above 0 for 5m. Login requests are blocked waiting on core-database, not on CPU. Every service on the platform authenticates through this instance."
+            runbook: "Dashboard 11 - Keycloak Identity, 'Database Connection Pool' row. Check core-database health and max_connections before raising the pool size."
+
+        - alert: KeycloakWorkerPoolSaturated
+          expr: worker_pool_queue_size{job="keycloak-metrics",pool_name="vert.x-worker-thread"} > 10
+          for: 5m
+          labels: {severity: critical, component: identity}
+          annotations:
+            summary: "Keycloak request queue is backing up"
+            description: "More than 10 tasks have been waiting for a Vert.x worker thread for 5m. Authentication latency is rising for the whole platform."
+            runbook: "Dashboard 11 - Keycloak Identity, 'HTTP Worker Pool' row. Check the DB pool row first — worker threads usually queue because they are blocked on the database."
+
+        - alert: KeycloakTasksRejected
+          expr: increase(worker_pool_rejected_total{job="keycloak-metrics"}[10m]) > 0
+          for: 0m
+          labels: {severity: critical, component: identity}
+          annotations:
+            summary: "Keycloak rejected work outright"
+            description: "worker_pool_rejected_total increased. Requests were refused rather than queued — users were turned away. This should never be non-zero."
+            runbook: "Dashboard 11 - Keycloak Identity. Treat as a live authentication outage."
+
+    # =====================================================================
+    - name: utm-identity-warning
+      interval: 60s
+      rules:
+        - alert: KeycloakDBPoolSaturating
+          expr: >-
+            agroal_active_count{job="keycloak-metrics"}
+            / clamp_min(agroal_active_count{job="keycloak-metrics"}
+                        + agroal_available_count{job="keycloak-metrics"}, 1) > 0.9
+          for: 10m
+          labels: {severity: warning, component: identity}
+          annotations:
+            summary: "Keycloak database pool over 90% in use"
+            description: "Nearly every pooled connection is checked out. Not yet queueing, but there is no headroom left for a login burst."
+            runbook: "Dashboard 11 - Keycloak Identity, 'Pool state over time'. Precedes KeycloakDBPoolExhausted."
+
+        - alert: KeycloakHeapHigh
+          expr: >-
+            base_memory_usedHeap_bytes{job="keycloak-metrics"}
+            / base_memory_maxHeap_bytes{job="keycloak-metrics"} > 0.85
+          for: 15m
+          labels: {severity: warning, component: identity}
+          annotations:
+            summary: "Keycloak JVM heap above 85%"
+            description: "Sustained high heap precedes GC thrash and then login latency. Measured idle utilisation on this instance is under 5%, so 85% is a genuine anomaly."
+            runbook: "Dashboard 11 - Keycloak Identity, 'Memory pools by region'. A rising G1 Old Gen floor that survives collection indicates a leak rather than load."
+
+        - alert: KeycloakGCOverheadHigh
+          expr: jvm_gc_overhead_percent{job="keycloak-metrics"} > 0.10
+          for: 10m
+          labels: {severity: warning, component: identity}
+          annotations:
+            summary: "Keycloak spending over 10% of CPU in garbage collection"
+            description: "jvm_gc_overhead_percent is a ratio in [0..1] despite its name. Above 0.10 the JVM is doing more collecting than work."
+            runbook: "Dashboard 11 - Keycloak Identity, 'GC pause time'. Usually follows KeycloakHeapHigh."
+
+        - alert: KeycloakConnectionChurn
+          expr: rate(agroal_creation_count_total{job="keycloak-metrics"}[15m]) > 0.5
+          for: 15m
+          labels: {severity: warning, component: identity}
+          annotations:
+            summary: "Keycloak is repeatedly rebuilding database connections"
+            description: "Sustained connection creation means connections are being closed underneath Keycloak — typically a database-side wait_timeout or an idle reap between Keycloak and core-database. Each rebuild adds handshake latency to a login."
+            runbook: "Dashboard 11 - Keycloak Identity, 'Connection churn'. Compare against the MariaDB wait_timeout on core-database."
+
+        - alert: KeycloakConnectionLeak
+          expr: increase(agroal_leak_detection_count_total{job="keycloak-metrics"}[1h]) > 0
+          for: 0m
+          labels: {severity: warning, component: identity}
+          annotations:
+            summary: "Keycloak connection leak detected"
+            description: "Agroal found a connection held past the leak timeout. Leaked connections are never returned to the pool and will exhaust it over time."
+            runbook: "Dashboard 11 - Keycloak Identity, 'Pool faults'. This counter was 0 at build time."
+
+        - alert: KeycloakRestarted
+          expr: resets(process_uptime_seconds{job="keycloak-metrics"}[15m]) > 0
+          for: 0m
+          labels: {severity: warning, component: identity}
+          annotations:
+            summary: "Keycloak restarted"
+            description: "process_uptime_seconds reset, meaning the identity provider restarted. Every in-flight session on the platform is affected. If unplanned, correlate with the OOM and restart alerts."
+            runbook: "Dashboard 11 - Keycloak Identity, 'JVM Uptime' and the Restarts panel."
+
+    # =====================================================================
+    - name: utm-identity-coverage
+      interval: 300s
+      rules:
+        - alert: KeycloakMetricsMissing
+          expr: absent(up{job="keycloak-metrics"})
+          for: 15m
+          labels: {severity: warning, component: monitoring}
+          annotations:
+            summary: "Keycloak runtime metrics absent from Prometheus"
+            description: "The keycloak-metrics job has disappeared. Either the ServiceMonitor or the headless keycloak-metrics Service was removed, or KC_METRICS_ENABLED was unset on the deployment — which a GitOps resync would do, because these changes are not yet in Git. The JVM and DB-pool rows of dashboard 11 will silently show no data."
+            runbook: "Re-apply observability/servicemonitor-keycloak.yaml and observability/keycloak-enable-metrics-patch.json."
+
+        - alert: KeycloakScrapeFailing
+          expr: up{job="keycloak-metrics"} == 0
+          for: 10m
+          labels: {severity: warning, component: monitoring}
+          annotations:
+            summary: "Keycloak metrics endpoint unreachable"
+            description: "The target exists but is not answering. Note that Keycloak has no readinessProbe on this deployment, so a pod can report 1/1 well before it serves traffic — a short window after a restart is expected."
+            runbook: "curl the pod's /keycloak/auth/metrics on port 8180."

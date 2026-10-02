@@ -1,0 +1,23 @@
+# Same pattern as otel-instrumentation.yaml -- see that file for the
+# port/env fixes this bakes in from the start. Node.js only (flyk);
+# cloudflared is a Go binary (tunnel infra), no auto-instrumentation path.
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: utm-app-tracing
+  namespace: utm-aviamaps
+spec:
+  exporter:
+    endpoint: http://utm-statistics-tempo.utm-statistics.svc.cluster.local:4318
+  env:
+    - name: OTEL_METRICS_EXPORTER
+      value: "none"
+    - name: OTEL_LOGS_EXPORTER
+      value: "none"
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_always_on
+  nodejs:
+    image: harbor.ops.io/utm-devops/autoinstrumentation-nodejs:0.78.0

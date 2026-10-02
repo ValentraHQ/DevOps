@@ -1,0 +1,1716 @@
+{
+ "uid": "utm-obs-05-uas",
+ "title": "05 - UAS Zones & Airspace",
+ "description": "**Purpose:** product-oriented view of ED-269 airspace geozones held in `uas_9.0.0`.\n\n**Data source:** Elasticsearch `core-es7` (utm-core), index `uas_9.0.0`, time field `submitTime`.\n\n**IMPORTANT:** these records are **airspace zones, not drones**. Do not read the document count as a drone or operator count.\n\n**Document count caveat:** `_cat/indices` reports ~504 for this index because `uasZone.geometry` and `laraAirspaceProperties.reservations` are nested types. The business-level count from `_count` is **168**. All panels here aggregate parent documents.\n\n**Data freshness:** submitTime spans 2026-06-29 → 2026-08-04. This is a loaded dataset, not a live feed.\n\n**Known gaps:** ED-269/LARA extended properties are unpopulated; ED-269/LARA extended properties are unpopulated (shown as an explicit gap panel). Geometry IS mapped, via the uas-zones-geo derived index — see the 'How the map is produced' panel.",
+ "tags": [
+  "utm-observability",
+  "uas",
+  "airspace"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 0,
+ "weekStart": "",
+ "refresh": "5m",
+ "preload": false,
+ "time": {
+  "from": "now-1y",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 101,
+   "type": "row",
+   "title": "Zone Inventory — ED-269 geozones (airspace, NOT drones)",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 102,
+   "type": "stat",
+   "title": "Total UAS Zones",
+   "description": "Document count in uas_9.0.0. These are ED-269 airspace geozones. NOTE: _cat/indices reports ~504 for this index because `uasZone.geometry` and `laraAirspaceProperties.reservations` are nested; the true business count is from _count.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 103,
+   "type": "stat",
+   "title": "Countries",
+   "description": "Distinct uasZone.country values.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 6,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "uasZone.country"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 104,
+   "type": "stat",
+   "title": "Zone Types",
+   "description": "Distinct uasZone.type values.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 12,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "uasZone.type"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 105,
+   "type": "stat",
+   "title": "Last Data",
+   "description": "Most recent `submitTime` in this dataset. Compare with the dashboard time range — this data may not be live.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 18,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "dateTimeAsIso"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "max",
+       "field": "submitTime"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 106,
+   "type": "row",
+   "title": "Distribution",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "id": 107,
+   "type": "barchart",
+   "title": "Zones by Type",
+   "description": "uasZone.type — confirmed values: REQ_AUTHORIZATION, NO_RESTRICTION.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "uasZone.type",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 108,
+   "type": "barchart",
+   "title": "Zones by Country",
+   "description": "uasZone.country, from the SOURCE index. See the Geographic Distribution row below for the map.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "uasZone.country",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 109,
+   "type": "barchart",
+   "title": "Zones by Data Origin",
+   "description": "uasZone.dataSource.originator — how each zone entered the system (e.g. AIXM-import vs native).",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "uasZone.dataSource.originator",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 110,
+   "type": "timeseries",
+   "title": "Zone Ingest Over Time",
+   "description": "Zones by submitTime. Shows when airspace data was loaded, not when zones are active.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 7,
+    "w": 14,
+    "x": 0,
+    "y": 14
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 111,
+   "type": "barchart",
+   "title": "Zones by Restriction Reason",
+   "description": "uasZone.reason.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 7,
+    "w": 10,
+    "x": 14,
+    "y": 14
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "uasZone.reason",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "15"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 112,
+   "type": "row",
+   "title": "ED-269 / LARA Properties",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 21
+   },
+   "panels": []
+  },
+  {
+   "id": 113,
+   "type": "text",
+   "title": "ED-269 & LARA extended properties — NOT POPULATED",
+   "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 0,
+    "y": 22
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "### Status: NO DATA (fields exist, values are empty)\n\nThe `uas_9.0.0` mapping defines ED-269 and LARA extended properties, but aggregating them over all 168 documents returns **zero buckets**. Verified empty:\n\n| Field | Result |\n|---|---|\n| `ed269Properties.uSpaceClass` | empty |\n| `ed269Properties.restrictionCondition` | empty |\n| `uasZone.restrictionConditions` | empty |\n| `laraAirspaceProperties.isLaraAirspace` | empty |\n| `uasZone.extendedProperties.active` | empty |\n\nNo panels are built on these fields. An empty chart here would imply *zero zones have restrictions*, which is a different and misleading claim from *this attribute is not populated in the source data*.\n\n**Action:** confirm with the data owner whether the ingest pipeline is expected to populate ED-269 extended properties. If it is, this is a data-quality defect upstream."
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  },
+  {
+   "id": 114,
+   "type": "text",
+   "title": "How the map is produced",
+   "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 12,
+    "y": 22
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "### Geometry is derived, not read directly\n\n`uas_9.0.0` stores geometry as **`geo_shape` inside a `nested` field** (`uasZone.geometry.geom`). Grafana's Elasticsearch datasource can aggregate neither `nested` fields nor `geo_shape`, so it cannot map that index directly.\n\n`uas-zones-geo` is a **read-only derivation**: each zone's polygon is reduced to a parent-level `centroid` geo_point, which `geohash_grid` can aggregate. The source index is never modified.\n\n**Centroid method:** arithmetic mean of the exterior ring's vertices, excluding the GeoJSON closing vertex. This is a *vertex* centroid, not an area centroid — for these airspace polygons the difference is negligible and it can never fall outside the bounding box. Verified precondition: all 168 zones hold exactly one `Polygon` (168 docs : 168 nested geometry entries).\n\n**A centroid is a point, not the zone.** A large or irregular zone is drawn at its centre, so the map shows *where zones are*, not their true extent. For exact boundaries use the source geometry.\n\n**Refresh:** rebuild with `uas-zones-geo-build.sh`. The freshness row below compares counts so staleness is visible rather than silent."
+   },
+   "pluginVersion": "12.1.1"
+  },
+  {
+   "id": 115,
+   "type": "row",
+   "title": "Geographic Distribution",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 31
+   },
+   "panels": []
+  },
+  {
+   "id": 116,
+   "type": "geomap",
+   "title": "UAS Zone Density",
+   "description": "Heatmap of zone centroids from uas-zones-geo. Each point is one zone's polygon centre, not its extent. Verified bounding box of the data: lat 55.1–67.8, lon 12.0–27.7 (Sweden and Estonia).",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uasgeo"
+   },
+   "gridPos": {
+    "h": 14,
+    "w": 16,
+    "x": 0,
+    "y": 32
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "shades"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "basemap": {
+     "config": {},
+     "name": "Layer 0",
+     "type": "xyz"
+    },
+    "controls": {
+     "mouseWheelZoom": true,
+     "showAttribution": true,
+     "showDebug": false,
+     "showMeasure": true,
+     "showScale": true,
+     "showZoom": true
+    },
+    "layers": [
+     {
+      "type": "heatmap",
+      "name": "Zone density",
+      "opacity": 0.7,
+      "tooltip": true,
+      "config": {
+       "blur": 15,
+       "radius": 8,
+       "weight": {
+        "fixed": 1,
+        "max": 1,
+        "min": 0
+       }
+      },
+      "filterData": {
+       "id": "byRefId",
+       "options": "A"
+      },
+      "location": {
+       "geohash": "centroid",
+       "mode": "geohash"
+      }
+     }
+    ],
+    "tooltip": {
+     "mode": "details"
+    },
+    "view": {
+     "allLayers": true,
+     "id": "coords",
+     "lat": 61.5,
+     "lon": 19.9,
+     "zoom": 4.2,
+     "lastOnly": false,
+     "layer": "Zone density",
+     "shared": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uasgeo"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "geohash_grid",
+       "field": "centroid",
+       "settings": {
+        "precision": "5"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 117,
+   "type": "stat",
+   "title": "Zones on Map",
+   "description": "Documents in uas-zones-geo carrying a centroid.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uasgeo"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 8,
+    "x": 16,
+    "y": 32
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uasgeo"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 118,
+   "type": "barchart",
+   "title": "Mapped Zones by Country",
+   "description": "country, read from the DERIVED index — a cross-check that the derivation preserved the source distribution (expect SWE 131, EST 37).",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uasgeo"
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 8,
+    "x": 16,
+    "y": 36
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uasgeo"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "country",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 119,
+   "type": "row",
+   "title": "Derived Index Freshness",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 46
+   },
+   "panels": []
+  },
+  {
+   "id": 120,
+   "type": "stat",
+   "title": "Source Zones (uas_9.0.0)",
+   "description": "Authoritative count in the live index.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 0,
+    "y": 47
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 121,
+   "type": "stat",
+   "title": "Derived Zones (uas-zones-geo)",
+   "description": "Count in the mappable copy. Should equal the source.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uasgeo"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 6,
+    "y": 47
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uasgeo"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 122,
+   "type": "stat",
+   "title": "Newest Zone in Derived Index",
+   "description": "Most recent submitTime present in the derived index.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uasgeo"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 12,
+    "y": 47
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "dateTimeAsIso"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uasgeo"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "max",
+       "field": "submitTime"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ]
+  },
+  {
+   "id": 123,
+   "type": "text",
+   "title": "Staleness check",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 47
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "Compare **Source Zones** with **Derived Zones** — they should be equal.\n\nIf they differ, `uas-zones-geo` is stale and the map is missing (or over-reporting) zones. Rebuild with:\n\n```\nbash uas-zones-geo-build.sh\n```\n\nThe derivation is a point-in-time copy, so drift after zone changes is expected — not a fault. It is surfaced here rather than left silent."
+   },
+   "pluginVersion": "12.1.1"
+  }
+ ]
+}

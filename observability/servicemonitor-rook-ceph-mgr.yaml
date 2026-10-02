@@ -1,0 +1,31 @@
+# Scrapes the EXISTING rook-ceph-mgr metrics endpoint (412 ceph_* metrics).
+# No new exporter is deployed — rook-ceph-mgr already serves /metrics on 9283,
+# it simply was never scraped: there was no ServiceMonitor in the rook-ceph
+# namespace, and all 17 existing ServiceMonitors live in `monitoring`.
+#
+# The Prometheus CR uses:
+#   serviceMonitorSelector          : matchLabels{release: kube-prometheus-stack}
+#   serviceMonitorNamespaceSelector : {}   (all namespaces)
+# so the `release` label below is what makes this object picked up.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rook-ceph-mgr
+  namespace: rook-ceph
+  labels:
+    release: kube-prometheus-stack
+    app: rook-ceph-mgr
+spec:
+  namespaceSelector:
+    matchNames:
+      - rook-ceph
+  selector:
+    matchLabels:
+      app: rook-ceph-mgr
+      rook_cluster: rook-ceph
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 20s
+      honorLabels: true

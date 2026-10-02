@@ -1,0 +1,23 @@
+apiVersion: 1
+
+providers:
+  # Single provider for the whole UTM Observability suite (dashboards 00-09).
+  #
+  # The former "default-dashboard" provider (folder "UTM-Dashboard") was retired
+  # when the Drone Plan Dashboard moved into this suite as
+  # 09-drone-plan-statistics.json. It served exactly one file and would
+  # otherwise leave an empty folder in the Grafana UI.
+  #
+  # allowUiUpdates is false: these are GitOps-managed. With it true, edits made
+  # in the Grafana UI are silently overwritten on the next provisioning sweep;
+  # false makes Grafana mark them read-only instead, and changes go through Git.
+  - name: "utm-observability"
+    orgId: 1
+    folder: "UTM Observability"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 60
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards-observability
+      foldersFromFilesStructure: false

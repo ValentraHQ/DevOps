@@ -1,0 +1,2299 @@
+{
+ "uid": "utm-obs-00-executive",
+ "title": "00 - UTM Executive Platform Overview",
+ "description": "**Purpose:** single-screen operational summary of the UTM platform, with drill-down to every detailed dashboard via the *UTM Observability* menu.\n\n**Data sources:** Prometheus (kube-state-metrics, node-exporter, ceph-mgr), Elasticsearch core-es7 (uas_9.0.0, operation-plan-wrapper, operation-plan-result), utm-generic-statistics.\n\n**Known limitations:** UTM application services are NOT instrumented into Prometheus, so no service-level RED metrics exist. Application logs are unavailable. See *08 - Observability Coverage*.\n\n**Interpretation:** business-data KPIs (zones, plans, events) reflect historical datasets and are not live telemetry — check *Data Freshness* on each detail dashboard.",
+ "tags": [
+  "utm-observability",
+  "executive"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 0,
+ "weekStart": "",
+ "refresh": "30s",
+ "preload": false,
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 101,
+   "type": "row",
+   "title": "Cluster",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 102,
+   "type": "stat",
+   "title": "Nodes",
+   "description": "Total Kubernetes nodes.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(kube_node_info)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 103,
+   "type": "stat",
+   "title": "Ready Nodes",
+   "description": "Nodes reporting Ready=true. Lower than total = node outage.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 104,
+   "type": "stat",
+   "title": "UTM Pods",
+   "description": "Pods across all utm-* namespaces.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(kube_pod_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 105,
+   "type": "stat",
+   "title": "Running",
+   "description": "Pods in Running phase.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_pod_status_phase{phase=\"Running\",namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 106,
+   "type": "stat",
+   "title": "Pending",
+   "description": "Pods stuck Pending — usually unschedulable or waiting on a volume.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_pod_status_phase{phase=\"Pending\",namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 107,
+   "type": "stat",
+   "title": "Failed",
+   "description": "Pods in Failed phase.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_pod_status_phase{phase=\"Failed\",namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 108,
+   "type": "row",
+   "title": "Availability & Restarts",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "id": 109,
+   "type": "stat",
+   "title": "Unavailable Replicas",
+   "description": "Sum of deployment replicas not available. >0 means degraded workloads.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_deployment_status_replicas_unavailable{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 110,
+   "type": "stat",
+   "title": "Degraded Deployments",
+   "description": "Deployments where available < desired.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count(kube_deployment_status_replicas_available{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"} < kube_deployment_status_replicas{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 111,
+   "type": "stat",
+   "title": "CrashLoopBackOff",
+   "description": "Containers currently in CrashLoopBackOff.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_pod_container_status_waiting_reason{reason=\"CrashLoopBackOff\",namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 112,
+   "type": "stat",
+   "title": "Restarts (1h)",
+   "description": "Container restarts in the last hour across utm-* namespaces.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 5
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}[1h])) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 113,
+   "type": "stat",
+   "title": "OOMKilled",
+   "description": "Containers whose last termination was OOMKilled.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(kube_pod_container_status_last_terminated_reason{reason=\"OOMKilled\",namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 114,
+   "type": "stat",
+   "title": "Ceph Health",
+   "description": "0=HEALTH_OK 1=HEALTH_WARN 2=HEALTH_ERR.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "HEALTH_OK",
+         "color": "green",
+         "index": 0
+        },
+        "1": {
+         "text": "HEALTH_WARN",
+         "color": "#EAB839",
+         "index": 1
+        },
+        "2": {
+         "text": "HEALTH_ERR",
+         "color": "red",
+         "index": 2
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       },
+       {
+        "color": "red",
+        "value": 2
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "ceph_health_status",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 115,
+   "type": "row",
+   "title": "Resource Pressure",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 10
+   },
+   "panels": []
+  },
+  {
+   "id": 116,
+   "type": "stat",
+   "title": "Cluster CPU",
+   "description": "Mean CPU utilisation across all nodes.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 11
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 70
+       },
+       {
+        "color": "orange",
+        "value": 85
+       },
+       {
+        "color": "red",
+        "value": 95
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percent",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 117,
+   "type": "stat",
+   "title": "Cluster Memory",
+   "description": "Mean memory utilisation across all nodes.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 11
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 75
+       },
+       {
+        "color": "orange",
+        "value": 85
+       },
+       {
+        "color": "red",
+        "value": 92
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percent",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "(1 - sum(node_memory_MemAvailable_bytes) / sum(node_memory_MemTotal_bytes)) * 100",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 118,
+   "type": "stat",
+   "title": "Max Node Disk",
+   "description": "Highest root-filesystem utilisation on any node. Ceph MONs warn below 30% free.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 11
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 70
+       },
+       {
+        "color": "orange",
+        "value": 80
+       },
+       {
+        "color": "red",
+        "value": 90
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percent",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "max((node_filesystem_size_bytes{mountpoint=\"/\",fstype!=\"rootfs\"} - node_filesystem_avail_bytes{mountpoint=\"/\",fstype!=\"rootfs\"}) / node_filesystem_size_bytes{mountpoint=\"/\",fstype!=\"rootfs\"} * 100)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 119,
+   "type": "stat",
+   "title": "Max PVC Usage",
+   "description": "Highest PersistentVolumeClaim utilisation.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 11
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 75
+       },
+       {
+        "color": "orange",
+        "value": 85
+       },
+       {
+        "color": "red",
+        "value": 90
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percent",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "max(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 120,
+   "type": "stat",
+   "title": "Ceph Used",
+   "description": "Ceph raw capacity used.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 11
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 70
+       },
+       {
+        "color": "orange",
+        "value": 80
+       },
+       {
+        "color": "red",
+        "value": 85
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "percent",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "ceph_cluster_total_used_bytes / ceph_cluster_total_bytes * 100",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 121,
+   "type": "stat",
+   "title": "Ceph Slow Ops",
+   "description": "Ceph healthcheck slow operations. Sustained >0 cascades into probe failures.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 11
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "area",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum(ceph_healthcheck_slow_ops) or vector(0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": false
+    }
+   ]
+  },
+  {
+   "id": 122,
+   "type": "row",
+   "title": "UTM Business Data",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 15
+   },
+   "panels": []
+  },
+  {
+   "id": 123,
+   "type": "stat",
+   "title": "UAS Zones",
+   "description": "ED-269 geozones in uas_9.0.0. These are airspace zones, not drones.\n\nNOTE: this panel overrides the dashboard time range to 1 year because the dataset is historical.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-uas"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 0,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-uas"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1"
+       }
+      }
+     ],
+     "timeField": "submitTime"
+    }
+   ],
+   "timeFrom": "1y"
+  },
+  {
+   "id": 124,
+   "type": "stat",
+   "title": "Live Operation Plans",
+   "description": "operation-plan-wrapper _count. The authoritative live plan count.\n\nNOTE: this panel overrides the dashboard time range to 1 year because the dataset is historical.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 5,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ],
+   "timeFrom": "1y"
+  },
+  {
+   "id": 125,
+   "type": "stat",
+   "title": "Plan Results",
+   "description": "operation-plan-result documents (authorization/activation outcomes).\n\nNOTE: this panel overrides the dashboard time range to 1 year because the dataset is historical.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opr"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 10,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opr"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlanResult.startTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1"
+       }
+      }
+     ],
+     "timeField": "operationPlanResult.startTime"
+    }
+   ],
+   "timeFrom": "1y"
+  },
+  {
+   "id": 126,
+   "type": "stat",
+   "title": "User Events",
+   "description": "utm-generic-statistics events in the selected range.\n\nNOTE: this panel overrides the dashboard time range to 1 year because the dataset is historical.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 15,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ],
+   "timeFrom": "1y"
+  },
+  {
+   "id": 127,
+   "type": "stat",
+   "title": "Unique Users",
+   "description": "Distinct userIdAnonymized. No identifiable user data is exposed.\n\nNOTE: this panel overrides the dashboard time range to 1 year because the dataset is historical.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 19,
+    "y": 16
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "userIdAnonymized"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ],
+   "timeFrom": "1y"
+  },
+  {
+   "id": 128,
+   "type": "row",
+   "title": "Trends",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 20
+   },
+   "panels": []
+  },
+  {
+   "id": 129,
+   "type": "timeseries",
+   "title": "Pod Restart Rate — utm namespaces",
+   "description": "Restarts per second by namespace, 5m rate. Spikes indicate crash loops; use Platform Health to identify the pod.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 21
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "max",
+      "mean"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace) (rate(kube_pod_container_status_restarts_total{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}[5m]))",
+     "legendFormat": "{{namespace}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 130,
+   "type": "timeseries",
+   "title": "Node Disk Utilisation",
+   "description": "Root filesystem usage per node. The dominant cluster failure mode here — Ceph MONs raise MON_DISK_LOW below 30% free.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 21
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 70
+       },
+       {
+        "color": "orange",
+        "value": 80
+       },
+       {
+        "color": "red",
+        "value": 90
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "last",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "(node_filesystem_size_bytes{mountpoint=\"/\",fstype!=\"rootfs\"} - node_filesystem_avail_bytes{mountpoint=\"/\",fstype!=\"rootfs\"}) / node_filesystem_size_bytes{mountpoint=\"/\",fstype!=\"rootfs\"} * 100",
+     "legendFormat": "{{instance}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  }
+ ]
+}

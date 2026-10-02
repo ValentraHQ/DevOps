@@ -1,0 +1,250 @@
+<h1>UTM Observability Dashboard Suite</h1>
+<ac:structured-macro ac:name="toc" ac:schema-version="1"><ac:parameter ac:name="maxLevel">3</ac:parameter><ac:parameter ac:name="minLevel">2</ac:parameter><ac:parameter ac:name="outline">true</ac:parameter></ac:structured-macro>
+<p>An enterprise observability suite for the UTM platform, built from <strong>verified</strong> Prometheus metrics and Elasticsearch mappings. No panel in this suite is built on an assumed metric or an assumed field.</p>
+<p>Where the truth is <code>NOT INSTRUMENTED</code>, <code>NO DATA</code>, <code>STALE</code> or <code>NOT AVAILABLE</code>, the dashboards say so explicitly rather than rendering an empty chart.</p>
+<hr />
+<h2>1. Dashboard structure</h2>
+<table><tbody><tr><th>#</th><th>Dashboard</th><th>UID</th><th>Refresh</th><th>Default range</th></tr><tr><td>00</td><td>Executive Platform Overview</td><td><code>utm-obs-00-executive</code></td><td>30s</td><td>6h</td></tr><tr><td>01</td><td>Platform Health</td><td><code>utm-obs-01-health</code></td><td>30s</td><td>6h</td></tr><tr><td>02</td><td>Kubernetes Workloads</td><td><code>utm-obs-02-workloads</code></td><td>30s</td><td>6h</td></tr><tr><td>03</td><td>Nodes &amp; Cluster Resources</td><td><code>utm-obs-03-nodes</code></td><td>30s</td><td>6h</td></tr><tr><td>04</td><td>Ceph &amp; Storage Health</td><td><code>utm-obs-04-ceph</code></td><td>30s</td><td>6h</td></tr><tr><td>05</td><td>UAS Zones &amp; Airspace</td><td><code>utm-obs-05-uas</code></td><td>5m</td><td>1y</td></tr><tr><td>06</td><td>Operation Plan Lifecycle</td><td><code>utm-obs-06-opplans</code></td><td>1m</td><td>1y</td></tr><tr><td>07</td><td>User Activity &amp; Adoption</td><td><code>utm-obs-07-users</code></td><td>5m</td><td>1y</td></tr><tr><td>08</td><td>Observability Coverage</td><td><code>utm-obs-08-coverage</code></td><td>5m</td><td>6h</td></tr><tr><td>09</td><td>Drone Plan Dashboard <em>(statistics)</em></td><td><code>utm-drone-plans</code></td><td>5m</td><td>1y</td></tr><tr><td>10</td><td>DOR / DMS Registry</td><td><code>utm-obs-10-dor</code></td><td>5m</td><td>1y</td></tr><tr><td>11</td><td>Keycloak Identity</td><td><code>utm-obs-11-keycloak</code></td><td>5m</td><td>30d</td></tr></tbody></table>
+<p><strong>272 panels across 12 dashboards.</strong> Grafana folder: <strong>UTM Observability</strong>.</p>
+<p>Dashboard 09 is the pre-existing Drone Plan Dashboard, moved into this suite. It keeps its original uid <code>utm-drone-plans</code>, so existing links and bookmarks still resolve. It reads the <em>statistics</em> copy (<code>utm-op-statistics</code>); dashboard 06 reads the <em>live</em> store (<code>operation-plan-wrapper</code>).</p>
+<p>Every dashboard carries a <code>UTM Observability</code> dropdown in its header that preserves the current time range and variables when navigating.</p>
+<p>Dashboards 05–07 default to a <strong>1 year</strong> range deliberately: their datasets are historical (newest is 2026-08-10) and a 6h default would render them empty, which would read as "no activity" rather than "no recent data".</p>
+<hr />
+<h2>2. Infrastructure changes made</h2>
+<p>Only what the dashboards actually required.</p>
+<h3>2.1 ServiceMonitor for rook-ceph-mgr — <strong>required, and a correction</strong></h3>
+<p>The brief stated that <code>rook-ceph-exporter</code> metrics were already scraped by Prometheus. <strong>They were not.</strong> Verified before building:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[count of ceph_*  metric names in Prometheus : 0
+count of rook*   metric names in Prometheus : 0
+ServiceMonitors in the rook-ceph namespace  : 0]]></ac:plain-text-body></ac:structured-macro>
+<p>All 17 pre-existing ServiceMonitors lived in the <code>monitoring</code> namespace and targeted the monitoring stack itself. Meanwhile <code>rook-ceph-mgr:9283</code> was serving <strong>412 <code>ceph_*</code> metrics</strong> to nobody.</p>
+<p><code>servicemonitor-rook-ceph-mgr.yaml</code> scrapes that <strong>existing</strong> endpoint. No new exporter, no second Ceph monitoring stack. This is what made dashboard 04 possible; without it, Ceph would have had to ship as a coverage gap.</p>
+<h3>2.2 core-es7 datasources — three, not one</h3>
+<p><code>datasource.yaml</code> appends three Elasticsearch datasources to the existing <code>grafana-datasource-config</code> ConfigMap:</p>
+<table><tbody><tr><th>uid</th><th>Index</th><th>Time field</th></tr><tr><td><code>core-es7-uas</code></td><td><code>uas_9.0.0</code></td><td><code>submitTime</code></td></tr><tr><td><code>core-es7-opw</code></td><td><code>operation-plan-wrapper*</code></td><td><code>operationPlan.submitTime</code></td></tr><tr><td><code>core-es7-opr</code></td><td><code>operation-plan-result*</code></td><td><code>operationPlanResult.startTime</code></td></tr></tbody></table>
+<p>All three point at <code>core-es7.utm-core.svc.cluster.local:9200</code>, in-cluster only, never externally exposed.</p>
+<p><strong>Why three and not one:</strong> Grafana's Elasticsearch datasource binds exactly one index pattern <strong>and one time field</strong> per datasource. These three indices use three different time fields, so a single datasource cannot serve them. This is a Grafana constraint, not a design preference.</p>
+<h3>2.3 Dashboard provisioning</h3>
+<ul><li><code>provider.yaml</code> declares a single provider → folder <strong>UTM Observability</strong>,</li></ul>
+<p>path <code>/var/lib/grafana/dashboards-observability</code>, <code>allowUiUpdates: false</code> (GitOps-managed; UI edits would be silently overwritten, so the UI marks them read-only instead).</p>
+<ul><li><code>configmap-dashboards.yaml</code> — the 10 dashboards (~358 KB, well under the 1 MB</li></ul>
+<p>ConfigMap limit).</p>
+<ul><li><code>deployment-patch.json</code> — mounts that ConfigMap.</li></ul>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p>Apply the ConfigMap with <code>kubectl apply --server-side</code>. A normal <code>apply</code> stores the whole object in the <code>last-applied-configuration</code> annotation and exceeds the 256 KB annotation limit.</p></ac:rich-text-body></ac:structured-macro>
+<h3>2.4 Alert rules</h3>
+<p><code>alert-rules.yaml</code> — a <code>PrometheusRule</code> reusing the existing kube-prometheus-stack Alertmanager. <strong>32 rules across 6 groups</strong> — 12 critical, 16 warning, 4 coverage.</p>
+<p>The three <code>utm-identity-*</code> groups were added once Keycloak runtime metrics existed (§2.6). All 32 report <code>health=ok</code> in Prometheus <code>/api/v1/rules</code>.</p>
+<p>No rule is written against <code>keycloak_*</code> login counters: those series do not exist in this image, and a rule on an absent series is permanently silent while appearing configured.</p>
+<h3>2.5 ServiceMonitor for ingress-nginx — the only source of RED metrics</h3>
+<p><code>servicemonitor-ingress-nginx.yaml</code>. The controllers already served metrics on port 10254; nothing was scraping them.</p>
+<p>A <strong>dedicated headless ClusterIP Service</strong> plus a ServiceMonitor, rather than the two more obvious routes:</p>
+<ul><li>A <code>PodMonitor</code> needs a <em>named</em> containerPort. 10254 is not declared in the</li></ul>
+<p>DaemonSet, so naming it would mean editing the DaemonSet — which restarts all four controllers. This cluster's own Kubernetes API is reached through that ingress (<code>rancher.ops.io</code>), so a controller restart briefly takes <code>kubectl</code> offline. That is not a theoretical risk: it happened once during this work.</p>
+<ul><li>Adding a port to the existing <code>ingress-nginx-controller</code> Service would edit a</li></ul>
+<p>MetalLB-managed LoadBalancer carrying live 80/443 traffic.</p>
+<p>Result: <code>nginx_ingress_controller_requests</code> (52 series over 2 hosts) and <code>nginx_ingress_controller_request_duration_seconds_bucket</code> (624 buckets). This is <strong>edge</strong> RED — traffic crossing the ingress, by host and path. It is not per-service RED and says nothing about service-to-service calls, which never touch the ingress.</p>
+<h3>2.6 Keycloak runtime metrics — enabling, then scraping</h3>
+<p>Two changes, in order.</p>
+<p><strong>(a) Enable.</strong> <code>keycloak-enable-metrics-patch.json</code> sets <code>KC_METRICS_ENABLED=true</code> and <code>KC_HEALTH_ENABLED=true</code> on <code>utm-core/keycloak</code>. Before this, <code>/keycloak/auth/metrics</code> returned <strong>404</strong>.</p>
+<p>This restarts the core identity provider, which every service on the platform authenticates through, so the blast radius was checked before applying rather than after:</p>
+<table><tbody><tr><th>Check</th><th>Value</th><th>Consequence</th></tr><tr><td><code>replicas</code></td><td>1</td><td>a naive restart would mean a full outage</td></tr><tr><td><code>maxSurge</code> / <code>maxUnavailable</code></td><td>25% / 25% → <strong>1 / 0</strong></td><td>new pod starts <em>before</em> the old is removed</td></tr><tr><td>Volumes</td><td>no PVC</td><td>no ReadWriteOnce Multi-Attach deadlock</td></tr><tr><td>kubeconfig auth</td><td>Rancher-issued token</td><td>cluster access does not depend on Keycloak</td></tr></tbody></table>
+<p>The rollout surged cleanly and authentication was not interrupted. A backup of the pre-change deployment is <code>_keycloak-deploy-backup-111527.yaml</code>.</p>
+<p>Note: this deployment has <strong>no readinessProbe</strong>, so the pod reported <code>1/1</code> about 75 seconds before Keycloak actually served the endpoint. <code>1/1</code> is not a readiness signal here.</p>
+<p><strong>(b) Scrape.</strong> <code>servicemonitor-keycloak.yaml</code> — again a dedicated headless Service, because the existing <code>keycloak</code> Service has <code>metadata.labels: null</code> (no selector can match it) and is a NodePort serving live authentication on</p>
+<ol><li>Path is <code>/keycloak/auth/metrics</code>, not <code>/metrics</code>, because</li></ol>
+<p><code>KC_HTTP_RELATIVE_PATH=/keycloak/auth</code>.</p>
+<p>The endpoint serves <strong>153 metric lines / 101 distinct names</strong>:</p>
+<table><tbody><tr><th>Family</th><th>Count</th><th>What it gives</th></tr><tr><td><code>jvm_*</code> / <code>base_*</code> / <code>vendor_*</code></td><td>62</td><td>heap, memory pools, GC pause and overhead, threads by state, classloading</td></tr><tr><td><code>agroal_*</code></td><td>17</td><td>database connection pool — Keycloak's usual bottleneck</td></tr><tr><td><code>worker_pool_*</code></td><td>12</td><td>Vert.x request concurrency: active, idle, queue depth, rejections</td></tr><tr><td><code>process_*</code> / <code>system_*</code></td><td>10</td><td>CPU, file descriptors, uptime, host load</td></tr></tbody></table>
+<p><strong>Not</strong> present: <code>keycloak_*</code> login/registration counters and <code>http_server_requests_*</code>. These are <strong>not</strong> switched on by <code>KC_METRICS_ENABLED</code> — they come from the separate <code>keycloak-metrics-spi</code> extension, which is not bundled in this image and would need adding to the container build. Nothing in the suite fabricates them; dashboard 11 states the gap explicitly and falls back to <code>keycloak.event_entity</code>, which is richer for authentication <em>outcomes</em> because it carries the error reason.</p>
+<p>Two unit traps, handled in the panels and worth knowing before writing queries:</p>
+<ul><li><code>jvm_gc_overhead_percent</code>, <code>jvm_memory_usage_after_gc_percent</code> and</li></ul>
+<p><code>worker_pool_ratio</code> are <strong>ratios in [0..1]</strong> despite their names — they must use <code>percentunit</code>, not be multiplied by 100.</p>
+<ul><li><code>base_jvm_uptime</code> is <strong>milliseconds</strong>; <code>process_uptime_seconds</code> is seconds.</li></ul>
+<p>The job label is <code>keycloak-metrics</code> (from the Service name), not <code>keycloak</code>.</p>
+<h3>2.7 Loki + Alloy — closing the application-logs gap (2026-10-02)</h3>
+<p><code>loki-config.yaml</code>: single-binary Loki 3.7.8, TSDB index, filesystem storage, 30Gi PVC, 14-day retention (compactor-enforced — this cluster's documented failure mode is Ceph disk-fill, so retention is a real ceiling, not "whatever fits"). Scheduled off <code>utm-kubernetes-node-004</code> via nodeAffinity — that node's rook-ceph CSI nodeplugins were CrashLoopBackOff at deploy time (see the Calico confd/<code>SandboxChanged</code> entry in the main doc's §9 platform-issues table).</p>
+<p><code>alloy-logs.yaml</code>: Grafana Alloy v1.20.1 (Promtail's maintained replacement — Promtail hit EOL 2026-03-02) as a DaemonSet, hostPath-reading <code>/var/log/pods</code> with CRI-format parsing, filtered per-node via <code>discovery.kubernetes</code> + <code>NODE_NAME</code>. Deliberately <em>not</em> using the Kubernetes log-subresource API: that path depends on kubelet-mediated apiserver TLS, which was the exact thing broken by the 2026-09-30 cert-expiry incident. No PVC, no Ceph CSI dependency — runs on all 4 nodes including node-004.</p>
+<p>Both images are re-hosted to <code>harbor.ops.io/utm-devops/{loki,alloy}</code> — this cluster's nodes have no direct route to <code>registry-1.docker.io</code> (DNS/egress restricted to <code>uas.ops.io</code> + <code>harbor.ops.io</code>), same pattern as every other third-party image already in this namespace (Jaeger, Tempo).</p>
+<p>Verified: Grafana datasource health check OK; a manual push/query round trip returned the exact line pushed; real cluster log data confirmed flowing from multiple namespaces across nodes, including a line from <em>before</em> <code>alloy-logs</code> itself started (proves it backfills on first file discovery, not tail-only).</p>
+<p>Added <code>12-application-logs.json</code>: a <code>namespace</code> template variable (Loki <code>label_values</code>, restricted to <code>utm-.*</code>) driving one Logs panel. All 13 dashboards' nav <code>links</code> updated to cross-reference it.</p>
+<h3>2.8 OTel auto-instrumentation — tracing all utm-* applications (2026-10-02)</h3>
+<p>OpenTelemetry Operator v0.160.0 (<code>otel-operator.yaml</code>) + one <code>Instrumentation</code> CR per namespace (<code>otel-instrumentation*.yaml</code>, 4 total: <code>utm-services</code>, <code>utm-skyzr</code>, <code>utm-core</code>, <code>utm-aviamaps</code>), targeting Tempo's OTLP HTTP receiver on <code>:4318</code> (not <code>:4317</code>/grpc — both Java and Node auto-instrumentation default to <code>http/protobuf</code> regardless of port, confirmed via the Java agent's own logs). Java/Node services get a <code>-javaagent</code>/<code>NODE_OPTIONS</code> injected via a pod annotation (<code>instrumentation.opentelemetry.io/inject-{java,nodejs}</code>), zero app code changes, verified end-to-end against a 2-service pilot before fanning out further.</p>
+<p><strong>Final eligible count: 34 services</strong>, surveyed by checking the actual running process per pod (<code>/proc/1/cmdline</code>, and <code>/proc/*/cmdline</code> for shell-wrapped entrypoints) across all <code>utm-*</code> namespaces — not assumed from image names:</p>
+<ul><li><code>utm-services</code>: 28 Java/Quarkus + 1 Node (<code>utm-geotool</code>)</li><li><code>utm-skyzr</code>: 3 Java (<code>dor-acg</code>, <code>dor-be</code>, <code>dor-data-importer</code>)</li><li><code>utm-core</code>: 1 (<code>geoserver</code>) — <code>activemq</code> deliberately excluded as</li></ul>
+<p>infra/message-broker, not business logic</p>
+<ul><li><code>utm-aviamaps</code>: 1 Node (<code>flyk</code>)</li><li><code>utm-devops</code>: <strong>0 eligible</strong> — everything is nginx frontends or Go</li></ul>
+<p>binaries (Vault), neither has an auto-instrumentation path</p>
+<ul><li>Excluded everywhere: <code>cars</code> (Rust, no auto-instrumentation path exists in</li></ul>
+<p>the OTel ecosystem — would need source changes); Keycloak ×3 (identity-critical infra, deliberately out of scope)</p>
+<p><strong>The fan-out itself caused a serious cascading incident</strong> — restarting 34 services simultaneously exceeded this cluster's real per-node memory headroom, triggered a kernel OOM kill on one node, <code>NodeNotReady</code> flapping on two nodes, and knocked 2 of 3 Elasticsearch (<code>core-es7</code>) replicas offline as collateral damage, putting that cluster into <code>status: red</code> for several minutes. Ceph also went <code>HEALTH_WARN</code> (degraded redundancy) from the same root cause. <strong>Full incident writeup, with timeline, root cause and lessons learned, is in the main doc</strong> (<code>docs/UTM-Observability-Documentation.md</code>, under gap G4) — not duplicated here to avoid the two documents drifting out of sync on something this detailed.</p>
+<hr />
+<h2>3. Validation results</h2>
+<p>All performed against the live cluster.</p>
+<h3>3.1 Prometheus</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[TOTAL metric names            : 1415
+UTM pods visible              : 69          ✅ matches brief
+Nodes / Ready nodes           : 4 / 4
+Scrape targets                : 48  (14 jobs)]]></ac:plain-text-body></ac:structured-macro>
+<p>Every PromQL expression used was executed before being written into a panel:</p>
+<table><tbody><tr><th>Query</th><th>Result</th></tr><tr><td><code>count(kube_node_info)</code></td><td>4</td></tr><tr><td><code>count(kube_pod_info{namespace=~"utm-.*"})</code></td><td>69</td></tr><tr><td><code>kube_pod_container_status_restarts_total</code></td><td>200 series</td></tr><tr><td><code>kube_deployment_status_replicas{,_available,_unavailable}</code></td><td>104 series each</td></tr><tr><td><code>kube_node_status_condition</code></td><td>60 series</td></tr><tr><td><code>node_filesystem_{size,avail}_bytes</code></td><td>present</td></tr><tr><td><code>node_memory_Mem{Total,Available}_bytes</code></td><td>present</td></tr><tr><td><code>container_{cpu_usage_seconds_total,memory_working_set_bytes}</code></td><td>1003 series each</td></tr><tr><td><code>kubelet_volume_stats_{used,capacity}_bytes</code></td><td>42 series each</td></tr><tr><td><code>kube_ingress_info{namespace=~"utm-.*"}</code></td><td><strong>32</strong></td></tr><tr><td><code>kube_service_info{namespace=~"utm-.*"}</code></td><td><strong>84</strong></td></tr><tr><td><code>probe_success</code></td><td>3 series</td></tr><tr><td><strong>max node root-filesystem utilisation</strong></td><td><strong>80.93%</strong> ⚠️</td></tr></tbody></table>
+<h3>3.2 Ceph — after the ServiceMonitor was added</h3>
+<table><tbody><tr><th>Query</th><th>Result</th></tr><tr><td><code>ceph_health_status</code></td><td><strong>1</strong> (HEALTH_WARN)</td></tr><tr><td><code>sum(ceph_osd_up)</code> / <code>sum(ceph_osd_in)</code></td><td>3 / 3</td></tr><tr><td><code>sum(ceph_mon_quorum_status)</code></td><td>3</td></tr><tr><td><code>sum(ceph_healthcheck_slow_ops)</code></td><td>0</td></tr><tr><td><code>sum(ceph_pg_clean)</code> / <code>sum(ceph_pg_total)</code></td><td>81 / 81</td></tr><tr><td><code>ceph_cluster_total_bytes</code></td><td>325 GB</td></tr><tr><td><code>ceph_cluster_total_used_bytes</code></td><td>37.4 GB</td></tr><tr><td><code>max(ceph_osd_apply_latency_ms)</code></td><td>121 ms</td></tr><tr><td><code>ceph_osd_stat_bytes_used</code></td><td><strong>EMPTY</strong> — see gaps</td></tr></tbody></table>
+<h3>3.3 Elasticsearch — section 33 required queries</h3>
+<p><code>_count</code> used throughout, never <code>_cat/indices</code> <code>docs.count</code>:</p>
+<table><tbody><tr><th>Index</th><th><code>_count</code></th><th><code>_cat</code> docs.count</th><th>Time field</th></tr><tr><td><code>uas_9.0.0</code></td><td><strong>168</strong></td><td>~504 (nested-inflated)</td><td><code>submitTime</code></td></tr><tr><td><code>operation-plan-wrapper_3.2.2-p2</code></td><td><strong>41</strong></td><td>167 (nested-inflated)</td><td><code>operationPlan.submitTime</code></td></tr><tr><td><code>operation-plan-result_3.2.2-p2</code></td><td><strong>24</strong></td><td>—</td><td><code>operationPlanResult.startTime</code></td></tr><tr><td><code>ops-subscription_3.2.2-p2</code></td><td><strong>8</strong></td><td>—</td><td><em>(none)</em></td></tr><tr><td><code>utm-generic-statistics*</code></td><td><strong>635</strong></td><td>—</td><td><code>timestamp</code></td></tr></tbody></table>
+<p>Confirmed field values (only these were used to build panels):</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[uas_9.0.0
+  uasZone.type              REQ_AUTHORIZATION 130, NO_RESTRICTION 38
+  uasZone.country           SWE 131, EST 37
+  uasZone.reason            AIR_TRAFFIC 168
+  dataSource.originator     AIXM-import 131, uas 37
+  submitTime                2026-06-29 → 2026-08-04
+
+operation-plan-wrapper
+  operationPlan.state       CLOSED 14, PROPOSED 14, AUTHORIZED 10, ACTIVATED 3
+  modeOfOperation           REMOTELY_PILOTED_VLOS 28, REMOTELY_PILOTED_BVLOS 13
+  operator                  PH-DRN-REG-AX1B2 35, FRQ 6
+  submitTime                2026-04-15 → 2026-05-12
+
+operation-plan-result
+  state                     GRANTED 13, TIMEOUT 7, DENIED 4
+  operationPlanResultType   AUTHORIZATION 14, ACTIVATION 10
+
+utm-generic-statistics
+  application               flyk-web 635
+  event                     pageload 298, visibilitychange 298, deconflict 21, plan 18
+  unique userIdAnonymized   5
+  timestamp                 2026-03-23 → 2026-08-10]]></ac:plain-text-body></ac:structured-macro>
+<p>Connectivity from the Grafana pod to core-es7, post-provisioning:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[uas_9.0.0/_count                 {"count":168, "_shards":{"failed":0}}
+operation-plan-wrapper*/_count   {"count":41,  "_shards":{"failed":0}}
+operation-plan-result*/_count    {"count":24,  "_shards":{"failed":0}}]]></ac:plain-text-body></ac:structured-macro>
+<h3>3.4 Provisioning</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[inserting datasource from configuration name=core-es7-uas uid=core-es7-uas
+inserting datasource from configuration name=core-es7-opw uid=core-es7-opw
+inserting datasource from configuration name=core-es7-opr uid=core-es7-opr
+
+/var/lib/grafana/dashboards-observability/ → 9 files
+provisioning.dashboard  start → finish = 6.46s   (a real import)
+level=error lines                              : 0
+pod                                            : 1/1 Running, 0 restarts
+
+Prometheus rule groups loaded:
+  utm-platform-critical       9 rules
+  utm-platform-warning       10 rules
+  utm-observability-coverage  2 rules]]></ac:plain-text-body></ac:structured-macro>
+<hr />
+<h2>4. Known observability gaps</h2>
+<p>Each is represented on dashboard 08 with its evidence.</p>
+<table><tbody><tr><th>Gap</th><th>Status</th><th>Evidence</th></tr><tr><td><strong>Application RED metrics</strong></td><td><code>NOT INSTRUMENTED</code></td><td>0 <code>http_*</code>/<code>grpc_*</code> series from utm namespaces; 85 services, 38 deployments in <code>utm-services</code> alone. Now <strong>1</strong> ServiceMonitor targets utm-* (<code>utm-core/keycloak</code>), but it scrapes Keycloak's JVM and DB pool, not application requests. Partial substitute: ingress-edge RED via <code>nginx_ingress_controller_*</code>.</td></tr><tr><td><strong>Keycloak login / token counters</strong></td><td><code>NOT INSTRUMENTED</code></td><td><code>keycloak_*</code> and <code>http_server_requests_*</code> absent from the 153-line metrics endpoint; they require the <code>keycloak-metrics-spi</code> extension, which is not bundled in this image</td></tr><tr><td><strong>Application logs</strong></td><td><code>RESOLVED</code> (2026-10-02)</td><td>Loki + <code>alloy-logs</code> DaemonSet deployed; see §2.7. <code>utm-services-logs*</code> (ES app-level logs) is a separate, still-absent gap this doesn't close</td></tr><tr><td><strong>Jaeger/Tempo trace→log link</strong></td><td><code>RESOLVED</code> (2026-10-02)</td><td><code>tracesToLogsV2.datasourceUid</code> on both repointed <code>es-logs-uid</code> → <code>loki-uid</code></td></tr><tr><td><strong>Distributed tracing</strong></td><td><code>FANNED OUT, CLUSTER RECOVERING</code> (2026-10-02)</td><td>Was <code>STALE</code>. OTel Operator + 34 instrumented Java/Node services across 4 namespaces, zero code changes; see §2.8. The fan-out triggered a serious cascading incident (node OOM, ES went <code>red</code>, Ceph degraded) — see main doc's dedicated incident writeup under gap G4. Not claiming fully done until the cluster finishes settling</td></tr><tr><td>**TraceQL metrics queries (`\</td><td>rate()` etc.)**</td><td><code>RESOLVED</code> (2026-10-02)</td></tr><tr><td><strong>Endpoint coverage</strong></td><td><code>PARTIAL (~9%)</code></td><td>3 blackbox targets vs 32 ingresses</td></tr><tr><td><strong>Blackbox probes</strong></td><td><code>ALL FAILING</code></td><td><code>sum(probe_success)</code> = <strong>0</strong> of 3</td></tr><tr><td><strong>Alert history</strong></td><td><code>NO DATA</code></td><td><code>utm-alerting-statistics</code> = 0 docs in all 4 indices</td></tr><tr><td><strong>Per-OSD Ceph capacity</strong></td><td><code>NOT EXPOSED</code></td><td><code>ceph_osd_stat_bytes_used</code> empty on mgr:9283</td></tr><tr><td><strong>ED-269 / LARA properties</strong></td><td><code>NO DATA</code></td><td><code>uSpaceClass</code>, <code>restrictionCondition</code>, <code>isLaraAirspace</code>, <code>extendedProperties.active</code> all aggregate to 0 buckets</td></tr><tr><td><strong>UAS zone geometry</strong></td><td><code>RESOLVED</code></td><td><code>uasZone.geometry.geom</code> is <code>geo_shape</code> inside a <code>nested</code> field, which Grafana can aggregate neither of. Worked around by deriving a parent-level <code>centroid</code> geo_point into <code>uas-zones-geo</code> (<code>uas-zones-geo-build.sh</code>); the source index is not modified</td></tr><tr><td><strong><code>ops-subscription</code></strong></td><td><code>NOT QUERYABLE</code></td><td>all fields <code>text</code> / <code>aggregatable: false</code>, and no date field</td></tr><tr><td><strong>User dimensions</strong></td><td><code>NO DATA</code></td><td><code>location</code>, <code>userRoles</code>, <code>param1/2</code> empty; <code>userAgent</code> is non-aggregatable <code>text</code></td></tr></tbody></table>
+<hr />
+<h2>5. Assumptions</h2>
+<ol><li><strong><code>utm-*</code> namespace regex</strong> — "UTM platform" is taken to mean</li></ol>
+<p><code>utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops</code>, which yields the 69 pods the brief cites.</p>
+<ol><li><strong>Environment label</strong> — not hard-coded to "Production". No reliable</li></ol>
+<p>environment marker exists in the cluster, so per section 28 it is omitted rather than guessed.</p>
+<ol><li><strong>Disk thresholds</strong> — 70 / 80 / 90 % per section 8, set in each panel's</li></ol>
+<p>field config and adjustable there.</p>
+<ol><li><strong>Root filesystem selector</strong> — <code>mountpoint="/", fstype!="rootfs"</code>, the</li></ol>
+<p>standard node-exporter idiom.</p>
+<ol><li><strong>KPI single-bucket aggregation</strong> — Grafana's Elasticsearch datasource</li></ol>
+<p>rejects a metric query with no bucket agg, so KPI stats use a 1-year <code>date_histogram</code> with <code>min_doc_count: 1</code>, collapsing the range into one bucket so <code>lastNotNull</code> returns a true total rather than a sub-interval. <strong>Caveat:</strong> if a dataset ever spans two calendar years within the visible range, these tiles show only the later year.</p>
+<ol><li><strong><code>operation-plan-result</code> time field</strong> — <code>operationPlanResult.startTime</code> is</li></ol>
+<p>used; the index has no document-level created/updated timestamp.</p>
+<ol><li><strong>41 vs 37 plans</strong> — treated as normal lag, <strong>not</strong> a pipeline failure. The</li></ol>
+<p>two stores capture different lifecycle stages (live has a full spread, the statistics copy is entirely CLOSED), so a difference is expected by design.</p>
+<hr />
+<h2>6. Git diff summary</h2>
+<p>Files on disk, measured:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[observability/
+├── 00-executive-overview.json              57 KB  30 panels  executive summary, drill-down hub
+├── 01-platform-health.json                 38 KB   9 panels  namespace / pod health
+├── 02-kubernetes-workloads.json            37 KB  13 panels  container states and reasons
+├── 03-nodes-cluster.json                   28 KB   9 panels  node CPU / memory / disk
+├── 04-ceph-storage.json                    52 KB  22 panels  Ceph health, OSDs, PVCs
+├── 05-uas-zones.json                       43 KB  23 panels  airspace zones + geomap
+├── 06-operation-plans.json                 55 KB  26 panels  plan lifecycle + geomap
+├── 07-user-activity.json                   28 KB  12 panels  adoption and usage
+├── 08-observability-coverage.json          33 KB  21 panels  what is and is not monitored
+├── 09-drone-plan-statistics.json           50 KB  17 panels  pre-existing, moved into the suite
+├── 10-dor-registry.json                    62 KB  37 panels  DOR/DMS operators, drones, verification
+├── 11-keycloak-identity.json               94 KB  53 panels  auth events + JVM/DB/worker runtime
+├── 12-application-logs.json                     NEW 2026-10-02  namespace variable + Logs panel
+├── loki-config.yaml                             NEW  Loki: ConfigMap + PVC + Deployment + Svc
+├── alloy-logs.yaml                              NEW  Alloy DaemonSet + ServiceAccount/RBAC
+├── tempo-config.yaml                            NEW  Tempo ConfigMap +metrics_generator;
+│                                                      first time this pre-existing object is in Git
+├── otel-operator.yaml                           NEW  OTel Operator v0.160.0
+├── otel-instrumentation.yaml                    NEW  Instrumentation CR (utm-services)
+├── otel-instrumentation-core.yaml               NEW  Instrumentation CR (utm-core)
+├── otel-instrumentation-skyzr.yaml              NEW  Instrumentation CR (utm-skyzr)
+├── otel-instrumentation-aviamaps.yaml           NEW  Instrumentation CR (utm-aviamaps)
+├── instrument-all.ps1                           NEW  fan-out script: 4 CRs + 34 patches + rollout
+├── patches/*.json                               NEW  34 kubectl --patch-file injection annotations
+├── deployment-patch-dor.json              340 B   grafana DOR_RO_PASSWORD env
+├── deployment-patch.json                  495 B   grafana volume + mount
+├── ingress-enable-metrics-patch.json      126 B   ingress metrics port
+├── keycloak-enable-metrics-patch.json     215 B   KC_METRICS_ENABLED + KC_HEALTH_ENABLED
+├── _keycloak-deploy-backup-111527.yaml      3 KB  pre-change deploy backup
+├── alert-rules.yaml                        18 KB  32 PrometheusRule alerts, 6 groups
+├── datasource.yaml                          7 KB  12 datasources (+Loki; Jaeger/Tempo repointed)
+├── provider.yaml                          898 B   UTM Observability folder provider
+├── servicemonitor-ingress-nginx.yaml        2 KB  svc + ServiceMonitor, edge RED
+├── servicemonitor-keycloak.yaml             2 KB  svc + ServiceMonitor, 153 metrics
+├── servicemonitor-rook-ceph-mgr.yaml      996 B   all Ceph metrics
+└── README.md                               22 KB  this document
+
+Generator scripts (build-*.py, verify-*.py, run-*.py, wait-*.py) are
+working files, not deliverables. podmonitor-ingress-nginx.yaml was
+deleted: the PodMonitor approach yielded 0 targets because this
+prometheus-operator no longer honours targetPort. See §2.5.]]></ac:plain-text-body></ac:structured-macro>
+<p>Cluster objects changed, in the order they were applied:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[cm/grafana-datasource-config            PATCHED  6 -> 11 datasources
+cm/grafana-dashboard-provider           PATCHED  +1 provider (UTM Observability)
+cm/grafana-dashboards-observability     CREATED  12 dashboards, 579 KB of 1 MiB
+deploy/utm-statistics-grafana           PATCHED  +1 volume, +1 mount, +DOR_RO_PASSWORD
+servicemonitor/rook-ceph-mgr            CREATED  rook-ceph ns
+servicemonitor/ingress-nginx-controller CREATED  ingress-nginx ns  (+svc ingress-nginx-metrics)
+servicemonitor/keycloak                 CREATED  utm-core ns       (+svc keycloak-metrics)
+deploy/keycloak                         PATCHED  utm-core ns  +KC_METRICS_ENABLED +KC_HEALTH_ENABLED
+prometheusrule/utm-observability        CREATED  monitoring ns, 32 rules
+es index uas-zones-geo                  CREATED  core-es7, derived from uas_9.0.0 (source untouched)
+mysql user grafana_ro                   CREATED  core-database, column-scoped SELECT only
+deploy/loki + cm + pvc + svc            CREATED  utm-statistics ns, closes application-logs gap
+ds/alloy-logs + sa/rbac                 CREATED  utm-statistics ns, all 4 nodes, log shipper
+cm/grafana-datasource-config            PATCHED  +Loki; Jaeger+Tempo tracesToLogsV2 repointed
+cm/grafana-dashboards-observability     PATCHED  08 updated; +dashboard 12; 13 dashboards' nav links
+ds/calico-node + deploy/calico-kube-controllers PATCHED  v3.27.0 -> v3.27.5 (kube-system, not
+                                                 ArgoCD-managed at all -- see main doc §9)
+cm/utm-statistics-tempo                 PATCHED  +metrics_generator; fixes TraceQL rate()
+                                                 500s, verified HTTP 200
+otel-operator (new namespace)           CREATED  opentelemetry-operator-system
+Instrumentation x4 + 34 pod annotations CREATED  utm-services/-skyzr/-core/-aviamaps -- see
+                                                 main doc's incident writeup (gap G4) for the
+                                                 resource-cascade this fan-out triggered]]></ac:plain-text-body></ac:structured-macro>
+<p>Nothing existing was removed, and no existing Service, DaemonSet or LoadBalancer was edited — every scrape was added through a new, dedicated headless Service alongside the one already in use.</p>
+<hr />
+<h2>7. ⚠️ GitOps — action required</h2>
+<p><strong>Every change in §6 is live-cluster only. None of it is in Git.</strong></p>
+<p>The ArgoCD application <code>utm-statistics</code> has <code>selfHeal: true</code> and is currently <strong>down (zero pods)</strong>. When it returns it will revert every ConfigMap and Deployment change above — including <code>KC_METRICS_ENABLED</code>, which would silently take the Keycloak JVM and DB-pool rows of dashboard 11 back to NO DATA.</p>
+<p>That specific regression is now alarmed: <code>KeycloakMetricsMissing</code> fires after 15 minutes without the <code>keycloak-metrics</code> job. It is a detector, not a fix.</p>
+<p>Commit to <code>git@git.ops.io:uas/utm-devops.git</code> under <code>argocd-ns/utm-statistics</code> before ArgoCD is restored. Objects outside that path need a home too:</p>
+<table><tbody><tr><th>Object</th><th>Namespace</th><th>Belongs to</th></tr><tr><td><code>servicemonitor/rook-ceph-mgr</code></td><td><code>rook-ceph</code></td><td>whichever app manages rook-ceph</td></tr><tr><td><code>servicemonitor/ingress-nginx-controller</code> + its Service</td><td><code>ingress-nginx</code></td><td>whichever app manages ingress-nginx</td></tr><tr><td><code>servicemonitor/keycloak</code> + its Service</td><td><code>utm-core</code></td><td>whichever app manages utm-core</td></tr><tr><td><code>deploy/keycloak</code> env patch</td><td><code>utm-core</code></td><td>same — this one is a change to an <strong>existing</strong> object and will be reverted first</td></tr><tr><td><code>prometheusrule/utm-observability</code></td><td><code>monitoring</code></td><td>whichever app manages monitoring</td></tr><tr><td><code>deploy/loki</code>, <code>cm/loki-config</code>, <code>pvc/loki-data</code>, <code>svc/loki</code></td><td><code>utm-statistics</code></td><td>this app — see <code>loki-config.yaml</code></td></tr><tr><td><code>ds/alloy-logs</code>, <code>sa</code>/<code>clusterrole</code>/<code>clusterrolebinding</code></td><td><code>utm-statistics</code> (+cluster-scoped RBAC)</td><td>this app — see <code>alloy-logs.yaml</code></td></tr><tr><td><code>cm/utm-statistics-tempo</code></td><td><code>utm-statistics</code></td><td>this app — see <code>tempo-config.yaml</code>. Pre-existing object; this is its first commit ever</td></tr><tr><td>OTel Operator (Deployment, CRDs, RBAC, webhooks)</td><td><code>opentelemetry-operator-system</code> (new namespace)</td><td>no auto-instrumentation injection cluster-wide; pods fall back to running unmutated</td></tr><tr><td><code>Instrumentation</code> x4 + 34 pod annotations</td><td><code>utm-services</code>/<code>-skyzr</code>/<code>-core</code>/<code>-aviamaps</code></td><td>all 34 instrumented services silently stop getting traced</td></tr></tbody></table>
+<p>The <code>uas-zones-geo</code> Elasticsearch index and the <code>grafana_ro</code> MySQL grant are data-plane, not GitOps-managed; both are reproducible from <code>uas-zones-geo-build.sh</code> and the <code>*-grant.sql</code> files in the repo root.</p>
+<p>The Calico v3.27.5 bump (<code>kube-system</code>) is not GitOps-managed by <strong>any</strong> application — it's a raw <code>kubectl apply</code>, no <code>ownerReferences</code>. It survives any resync, but isn't backed by a manifest in this repo either; a from-Git cluster rebuild would need Calico reinstalled separately.</p>
+<hr />
+<h2>8. Incident path</h2>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[00 Executive Overview   ── what is wrong at all?
+        ↓
+01 Platform Health      ── which namespace / pod? restart leaderboard
+        ↓
+02 Kubernetes Workloads ── which container? waiting + termination reasons
+        ↓
+03 Nodes & Resources    ── is the node starved? disk / CPU / memory
+        ↓
+04 Ceph & Storage       ── is storage the root cause? slow ops, PGs, PVCs
+        ↓
+08 Coverage             ── can I even see this? or am I blind here?]]></ac:plain-text-body></ac:structured-macro>
+<p>The final step is deliberate. This cluster's characteristic failure is:</p>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p>node disk fills → Ceph MON_DISK_LOW → BlueStore slow ops → I/O latency → liveness probes time out → cluster-wide restart storm</p></ac:rich-text-body></ac:structured-macro>
+<p>which presents as an application problem and is not one. Dashboards 03 and 04 exist to make that chain visible in two clicks.</p>

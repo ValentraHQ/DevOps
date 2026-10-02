@@ -1,0 +1,680 @@
+<h1>BankID ↔ Keycloak (SKYZR / DOR) — Know-How and Runbook</h1>
+<ac:structured-macro ac:name="toc" ac:schema-version="1"><ac:parameter ac:name="maxLevel">3</ac:parameter><ac:parameter ac:name="minLevel">2</ac:parameter><ac:parameter ac:name="outline">true</ac:parameter></ac:structured-macro>
+<p><strong>Classification:</strong> Internal — DevOps / Systems / Engineering <strong>Applies to:</strong> <code>utm-skyzr/dor-keycloak</code> ("keycloak2"), realm <code>utm-dor</code> <strong>Keycloak in production:</strong> 26.7.3 (<code>keycloak-lfv-26.7.3:1.0.0</code>), deployed 2026-09-24 <strong>BankID environment:</strong> test (<code>appapi2.test.bankid.com</code>) <strong>All commands verified against the live cluster:</strong> 2026-09-24</p>
+<p>This is a working runbook. Every command below was actually executed; outputs are quoted as they came back. Where something bit me it is written down as a trap rather than silently corrected — those are the parts that cost hours.</p>
+<hr />
+<h2>Table of contents</h2>
+<ul><li>0. Before you start</li><li>1. Orientation — which Keycloak, and why it matters</li><li>2. Discovery — finding the integration from scratch</li><li>3. Verifying BankID actually works</li><li>4. Reading the DOR/DMS side</li><li>5. Building the Keycloak 26.7.3 image</li><li>6. Deploying</li><li>7. End-to-end test — pilot files a flight plan</li><li>8. Data flow reference</li><li>9. Troubleshooting catalogue</li><li>10. Environment traps</li><li>11. Open items</li><li>12. Artifacts</li></ul>
+<hr />
+<h2>0. Before you start</h2>
+<h3>0.1 What you need</h3>
+<table><tbody><tr><th>Need</th><th>Detail</th></tr><tr><td>kubeconfig</td><td><code>uas.yaml</code> (Rancher-issued token, independent of Keycloak — so it keeps working even if Keycloak is down)</td></tr><tr><td><code>kubectl</code></td><td>any recent version</td></tr><tr><td>Docker</td><td>only for building the image; the Java plugins compile in a container, no local JDK/Maven needed</td></tr><tr><td>Network</td><td><code>uas.ops.io</code> and <code>harbor.ops.io</code> to deploy/test; <code>github.com</code> + <code>repo1.maven.org</code> to build from source</td></tr></tbody></table>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[export KUBECONFIG=/path/to/uas.yaml
+kubectl get nodes]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><strong>Trap — Windows / Git-Bash.</strong> <code>kubectl</code> is a Windows binary, so <code>KUBECONFIG</code> must be a <em>Windows</em> path even inside Git Bash, and MSYS path translation has to be off or arguments like <code>/opt/keycloak/...</code> get rewritten to <code>C:/Program Files/...</code>:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[export KUBECONFIG='C:\Users\you\LFV\uas.yaml'
+export MSYS_NO_PATHCONV=1]]></ac:plain-text-body></ac:structured-macro>
+<p>Symptoms if you forget: <code>Unable to connect to the server: dial tcp 127.0.0.1:8080</code>, or <code>the working directory 'C:/Program Files/Git/src' is invalid</code>.</p></ac:rich-text-body></ac:structured-macro>
+<h3>0.2 Shorthand used throughout</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[export NS=utm-skyzr
+KC=$(kubectl -n $NS get pod -l app=dor-keycloak -o jsonpath='{.items[0].metadata.name}')
+DB=$(kubectl -n utm-core get pod -o name | grep core-database | head -1 | cut -d/ -f2)
+FLYK=$(kubectl -n utm-aviamaps get pod -l app=flyk -o jsonpath='{.items[0].metadata.name}')
+echo "keycloak=$KC  db=$DB  flyk=$FLYK"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><code>core-database</code> is recreated from time to time — re-resolve <code>$DB</code> rather than hard-coding, or you get <code>Error from server (NotFound): pods "core-database-..." not found</code>.</p></ac:rich-text-body></ac:structured-macro>
+<p>Database credentials (two different databases, two different users):</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[# Keycloak's own schema: dor_keycloak
+KU=$(kubectl  -n $NS get secret dor-keycloak -o jsonpath='{.data.KC_DB_USERNAME}' | base64 -d)
+KPW=$(kubectl -n $NS get secret dor-keycloak -o jsonpath='{.data.KC_DB_PASSWORD}' | base64 -d)
+# DOR/DMS application schema: dor_be
+DU=$(kubectl  -n $NS get secret dor-be -o jsonpath='{.data.DMS_DB_USERNAME}' | base64 -d)
+DPW=$(kubectl -n $NS get secret dor-be -o jsonpath='{.data.DMS_DB_PASSWORD}' | base64 -d)]]></ac:plain-text-body></ac:structured-macro>
+<hr />
+<h2>1. Orientation</h2>
+<p><strong>There are two Keycloaks. Confusing them wastes a day.</strong></p>
+<table><tbody><tr><th></th><th><code>utm-core/keycloak</code></th><th><code>utm-skyzr/dor-keycloak</code></th></tr><tr><td>Nickname</td><td>core / SWIM</td><td><strong>keycloak2 / DOR</strong></td></tr><tr><td>Version</td><td>23.0.5</td><td><strong>26.7.3</strong></td></tr><tr><td>Public path</td><td><code>/keycloak/auth</code></td><td><strong><code>/keycloak2/auth</code></strong></td></tr><tr><td>Realm</td><td><code>swim</code></td><td><strong><code>utm-dor</code></strong></td></tr><tr><td>Database</td><td><code>keycloak</code></td><td><strong><code>dor_keycloak</code></strong></td></tr><tr><td>Purpose</td><td>machine / service identity</td><td><strong>human end-user identity</strong></td></tr><tr><td>BankID</td><td>✗ none</td><td>✓ <strong>yes</strong></td></tr><tr><td>Trusted by <code>operation-plan-service</code></td><td>✓</td><td>✗</td></tr></tbody></table>
+<p>Prove it in one command:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[for d in utm-core/keycloak utm-skyzr/dor-keycloak utm-skyzr/dor-acg-keycloak; do
+  ns=${d%%/*}; name=${d##*/}
+  p=$(kubectl -n $ns get pod -o name | grep "$name" | head -1 | cut -d/ -f2)
+  echo "--- $d ($p)"
+  kubectl -n $ns exec $p -- sh -c \
+    'ls -1 /opt/keycloak/providers/; cat /opt/keycloak/version.txt' \
+    2>/dev/null | sed 's/^/    /'
+done]]></ac:plain-text-body></ac:structured-macro>
+<p>Real output:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[--- utm-core/keycloak (keycloak-6544d7fff4-shzdk)
+    README.md
+    keycloak-redirect-idp-plugin-1.0.0.jar
+    smartsis-listener-1.1.0.jar
+    Keycloak - Version 23.0.5
+--- utm-skyzr/dor-keycloak (dor-keycloak-8465fbdc8-wnrl5)
+    apple-social-identity-provider-1.0.2.jar
+    bankid4keycloak-26.0.0-kc26.7.3.jar
+    basic-storage-provider-1.0.jar
+    README.md
+    sweden-connect-provider-0.5.0.jar
+    Keycloak - Version 26.7.3
+--- utm-skyzr/dor-acg-keycloak (dor-acg-keycloak-775b864898-588nh)
+    README.md
+    apple-social-identity-provider-1.0.2.jar
+    basic-storage-provider-1.0.jar
+    datanor-keycloak-extensions-v17.14032025.jar
+    Keycloak - Version 17.0.1]]></ac:plain-text-body></ac:structured-macro>
+<p><code>utm-core/keycloak</code> has <strong>no BankID provider at all</strong>.</p>
+<ac:structured-macro ac:name="note" ac:schema-version="1"><ac:rich-text-body><p>Use <code>cat /opt/keycloak/version.txt</code>, <strong>not</strong> <code>kc.sh --version | head -1</code>. On 26.7.3 the first line of <code>kc.sh</code> output is <code>Appending additional Java properties to JAVA_OPTS</code>, so <code>head -1</code> prints the banner instead of the version. Also note <code>README.md</code> in <code>providers/</code> ships with the base image and is not a provider.</p>
+<p><strong>About the older document.</strong> <em>BankID-Keycloak_Integration v1</em> (2026-09-22) describes a <strong>local Docker PoC</strong> — KC 23.0.5, <code>start-dev</code>, H2 in memory, <code>master</code> realm, <code>localhost:8080</code>. That PoC was real and worked, but it is not this deployment. Anyone following it against the cluster is on the wrong server.</p></ac:rich-text-body></ac:structured-macro>
+<hr />
+<h2>2. Discovery</h2>
+<p>How to re-derive the whole picture with no prior knowledge.</p>
+<h3>2.1 Which deployments are identity-related</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl get deploy -A -o json | python -c "
+import sys,json
+for i in json.load(sys.stdin)['items']:
+    n=i['metadata']['name']; ns=i['metadata']['namespace']
+    if any(k in n.lower() for k in ('keycloak','auth','idp','bankid')):
+        c=i['spec']['template']['spec']['containers'][0]
+        print('  %-14s %-22s ready=%s/%s'%(ns,n,i['status'].get('readyReplicas',0),i['spec'].get('replicas')))
+        print('       %s'%c['image'])
+"]]></ac:plain-text-body></ac:structured-macro>
+<h3>2.2 Keycloak's configuration</h3>
+<p>Config and secrets arrive via <code>envFrom</code>, so the pod spec's <code>env</code> list looks empty. Read the ConfigMap instead:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS get cm dor-keycloak -o json | python -c "
+import sys,json
+for k,v in sorted(json.load(sys.stdin)['data'].items()): print('  %-36s %s'%(k,str(v)[:90]))
+"
+kubectl -n $NS get secret dor-keycloak -o json | python -c "
+import sys,json; print('  keys: '+', '.join(sorted(json.load(sys.stdin)['data'])))
+"]]></ac:plain-text-body></ac:structured-macro>
+<p>Values that matter:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[  KC_DB                                mariadb
+  KC_DB_URL_DATABASE                   dor_keycloak
+  KC_DB_URL_HOST                       core-database.utm-core.svc.cluster.local
+  KC_HTTP_RELATIVE_PATH                /keycloak2/auth
+  KC_PROXY                             edge      <-- Hostname v1, see 6.3
+  KC_HOSTNAME_STRICT_HTTPS             false     <-- Hostname v1, see 6.3
+  KEYCLOAK_SKYZR_WEBHOOK_REGISTER_URL  https://uas.ops.io/svc-pm/api/users]]></ac:plain-text-body></ac:structured-macro>
+<h3>2.3 Certificates and mounts</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS get deploy dor-keycloak -o json | python -c "
+import sys,json
+t=json.load(sys.stdin)['spec']['template']['spec']; c=t['containers'][0]
+print(' MOUNTS:')
+for m in c.get('volumeMounts',[]): print('  %-22s -> %-40s ro=%s'%(m['name'],m['mountPath'],m.get('readOnly')))
+print(' VOLUMES:')
+for v in t.get('volumes',[]):
+    k=[x for x in v if x!='name'][0]
+    print('  %-22s %-14s %s'%(v['name'],k,(v[k].get('secretName') or v[k].get('name') or '')))
+"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[ MOUNTS:
+  truststore             -> /opt/keycloak/conf/truststore
+  wildcard-tls           -> /opt/keycloak/conf/tls              ro=True
+  bankid-tls             -> /opt/keycloak/conf/tls-bankid       ro=True
+ VOLUMES:
+  bankid-tls             secret         bankid-tls]]></ac:plain-text-body></ac:structured-macro>
+<p>What the BankID secret holds — names and sizes only, never key material:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS get secret bankid-tls -o json | python -c "
+import sys,json,base64
+for k,v in sorted(json.load(sys.stdin)['data'].items()):
+    print('  %-38s %6d bytes'%(k,len(base64.b64decode(v))))
+"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[  Test_BankID_SSL_Root_CA_v1_Test.pem      2078 bytes
+  keystore.p12                             2979 bytes
+  truststore.p12                           1878 bytes]]></ac:plain-text-body></ac:structured-macro>
+<h3>2.4 Which identity providers are configured</h3>
+<p>Use the Admin API — it reflects the running server, not raw tables.</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[BASE=https://uas.ops.io/keycloak2/auth
+U=$(kubectl -n $NS get secret dor-keycloak -o jsonpath='{.data.KEYCLOAK_ADMIN}' | base64 -d)
+P=$(kubectl -n $NS get secret dor-keycloak -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' | base64 -d)
+TOKEN=$(curl -s -d client_id=admin-cli -d username="$U" -d "password=$P" -d grant_type=password \
+        "$BASE/realms/master/protocol/openid-connect/token" \
+        | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+
+curl -s -H "Authorization: Bearer $TOKEN" "$BASE/admin/realms/utm-dor/identity-provider/instances" \
+| python -c "
+import sys,json
+for i in json.load(sys.stdin):
+    print('  %-24s providerId=%-8s enabled=%s'%(i['alias'],i['providerId'],i['enabled']))
+"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[  bankid                   providerId=bankid   enabled=True
+  sweden-connect-sandbox   providerId=saml     enabled=False]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p>Admin tokens live ~60 s. Fetch and use inside one script; caching across steps gives <code>401 Unauthorized</code> on the second call.</p>
+<p><code>providerId=saml</code> is <strong>not</strong> stock Keycloak SAML — <code>sweden-connect-provider</code> overrides the built-in <code>saml</code> factory (<code>se.swedenconnect.keycloak.saml.SwedenConnectSAMLIdentityProviderFactory</code>). Removing that jar silently changes this IdP's behaviour.</p></ac:rich-text-body></ac:structured-macro>
+<h3>2.5 BankID provider configuration (secrets masked)</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[curl -s -H "Authorization: Bearer $TOKEN" \
+     "$BASE/admin/realms/utm-dor/identity-provider/instances/bankid" \
+| python -c "
+import sys,json
+for k,v in sorted(json.load(sys.stdin)['config'].items()):
+    if any(s in k.lower() for s in ('password','secret')): v='<set, %d chars>'%len(v)
+    print('  %-30s %s'%(k,v))
+"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[  bankid_apiurl                  https://appapi2.test.bankid.com
+  bankid_keystore_file           /opt/keycloak/conf/tls-bankid/keystore.p12
+  bankid_keystore_password       <set, 9 chars>
+  bankid_truststore_file         /opt/keycloak/conf/tls-bankid/truststore.p12
+  bankid_require_nin             false
+  bankid_save_nin_hash           false
+  bankid_show_qr_code            true
+  clientId                       lfv
+  clientSecret                   <set, 3 chars>]]></ac:plain-text-body></ac:structured-macro>
+<p><code>clientId</code> / <code>clientSecret</code> are demanded by Keycloak's generic IdP form and are <strong>unused by the BankID protocol</strong>. Any placeholder works.</p>
+<h3>2.6 Creating or updating the BankID IdP</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[curl -s -X POST "$BASE/admin/realms/utm-dor/identity-provider/instances" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{
+  "alias":"bankid","providerId":"bankid","enabled":true,
+  "config":{
+    "clientId":"lfv","clientSecret":"lfv",
+    "bankid_apiurl":"https://appapi2.test.bankid.com",
+    "bankid_keystore_file":"/opt/keycloak/conf/tls-bankid/keystore.p12",
+    "bankid_keystore_password":"qwerty123",
+    "bankid_privatekey_password":"qwerty123",
+    "bankid_truststore_file":"/opt/keycloak/conf/tls-bankid/truststore.p12",
+    "bankid_truststore_password":"qwerty123",
+    "bankid_show_qr_code":"true",
+    "bankid_require_nin":"false",
+    "bankid_save_nin_hash":"false"
+  }}']]></ac:plain-text-body></ac:structured-macro>
+<p>Expect <strong>201</strong>. If the alias exists you get 409 — use <code>PUT .../instances/bankid</code> to update in place instead.</p>
+<hr />
+<h2>3. Verifying BankID actually works</h2>
+<p>Three independent checks, cheapest first.</p>
+<h3>3.1 Do the certificates load, and when do they expire?</h3>
+<p>The pod has <code>keytool</code>. The BankID <strong>test</strong> keystore password is public (<code>qwerty123</code>, published by BankID with the test certificates), so this is safe as written. A production certificate's password must come from the IdP config or a secret.</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS exec $KC -c dor-keycloak -- \
+  keytool -list -v -keystore /opt/keycloak/conf/tls-bankid/keystore.p12 \
+          -storetype PKCS12 -storepass qwerty123 2>&1 \
+| grep -iE 'alias name|entry type|owner|issuer|valid from']]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Alias name: 1
+Entry type: PrivateKeyEntry
+Owner:  CN=FP Testcert 5, OID.2.5.4.41=Test av BankID, SERIALNUMBER=5566304928,
+        O=Testbank A AB (publ), C=SE
+Issuer: CN=Testbank A RP CA v1 for BankID Test, ...
+Valid from: Tue Jul 02 22:00:00 GMT 2024 until: Mon May 28 21:59:59 GMT 2029]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS exec $KC -c dor-keycloak -- \
+  keytool -list -v -keystore /opt/keycloak/conf/tls-bankid/truststore.p12 \
+          -storetype PKCS12 -storepass qwerty123 2>&1 | grep -iE 'alias|owner|valid from']]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Alias name: bankid test ca
+Owner: CN=Test BankID SSL Root CA v1 Test, OU=Infrastructure CA,
+       O=Finansiell ID-Teknik BID AB
+Valid from: Fri Nov 21 12:39:31 GMT 2014 until: Sun Dec 31 12:39:31 GMT 2034]]></ac:plain-text-body></ac:structured-macro>
+<h3>3.2 Does mutual TLS to BankID succeed? — the decisive test</h3>
+<p>Proves egress, DNS, the server certificate chain, <strong>and that BankID accepts our relying-party certificate</strong>.</p>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><strong>Trap.</strong> The Keycloak pod has <strong>no <code>curl</code>, <code>wget</code>, <code>openssl</code>, <code>python</code> or <code>tar</code></strong> — only <code>java</code>, <code>keytool</code> and <code>bash</code>. Check:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS exec $KC -c dor-keycloak -- sh -c \
+  'for t in curl wget openssl java keytool python3 tar; do printf "%-9s " $t; command -v $t || echo "-"; done']]></ac:plain-text-body></ac:structured-macro>
+<p>So <strong><code>kubectl cp</code> does not work</strong> — it needs <code>tar</code> in the container:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[OCI runtime exec failed: exec: "tar": executable file not found in $PATH]]></ac:plain-text-body></ac:structured-macro>
+<p>Stream the file in instead.</p></ac:rich-text-body></ac:structured-macro>
+<p><code>e2e/BankidProbe.java</code> does what the provider's <code>SimpleBankidClient</code> does:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS exec -i $KC -c dor-keycloak -- sh -c 'cat > /tmp/BankidProbe.java' < e2e/BankidProbe.java
+kubectl -n $NS exec    $KC -c dor-keycloak -- java /tmp/BankidProbe.java
+kubectl -n $NS exec    $KC -c dor-keycloak -- rm -f /tmp/BankidProbe.java]]></ac:plain-text-body></ac:structured-macro>
+<p>Expected:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[java    : 21.0.12.1
+target  : https://appapi2.test.bankid.com
+keystore: loaded, aliases=[1]
+truststore: loaded, aliases=[bankid test ca]
+
+--- TLS ---
+cipher  : TLS_AES_256_GCM_SHA384
+server  : CN=appapi2.test.bankid.com, SERIALNUMBER=5566304928,
+          OU=BankID Test, O=Finansiell ID-Teknik BID AB, C=SE
+
+--- HTTP ---
+status  : 200  (1316 ms)
+body    : {"orderRef":"01a0d29d-...","autoStartToken":"d534757e-...",
+           "qrStartToken":"de366bbb-...","qrStartSecret":"dc890c37-..."}
+
+--- VERDICT ---
+mTLS OK and BankID accepted the relying-party certificate.]]></ac:plain-text-body></ac:structured-macro>
+<p><code>HTTP 200</code> with a live <code>orderRef</code> is conclusive. The probe sends no personal number and completes no authentication for a real person; the order it opens expires unused in ~30 s.</p>
+<p>Reading the result:</p>
+<table><tbody><tr><th>Result</th><th>Meaning</th></tr><tr><td>200 + <code>orderRef</code></td><td>everything works</td></tr><tr><td>connect timeout / <code>UnknownHostException</code></td><td>cluster egress or DNS blocked</td></tr><tr><td><code>SSLHandshakeException</code> … <code>unable to find valid certification path</code></td><td>wrong truststore</td></tr><tr><td>401 / 403</td><td>reachable, but BankID <strong>rejected our RP certificate</strong> (expired or wrong cert)</td></tr></tbody></table>
+<h3>3.3 Does BankID appear on the login page?</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[curl -s "https://uas.ops.io/keycloak2/auth/realms/utm-dor/protocol/openid-connect/auth\
+?client_id=frontend&redirect_uri=https%3A%2F%2Fuas.ops.io%2Favm%2F&response_type=code&scope=openid&state=probe" \
+| grep -oE 'broker/[a-zA-Z0-9_-]+/login' | sort -u]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[broker/bankid/login]]></ac:plain-text-body></ac:structured-macro>
+<h3>3.4 Has anyone ever actually logged in with BankID?</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-core exec $DB -- sh -c "mysql -u'$KU' -p'$KPW' -t -e \"
+SELECT fi.IDENTITY_PROVIDER, COUNT(*) AS links
+  FROM dor_keycloak.FEDERATED_IDENTITY fi
+  JOIN dor_keycloak.USER_ENTITY u ON u.ID=fi.USER_ID
+  JOIN dor_keycloak.REALM r       ON r.ID=u.REALM_ID
+ WHERE r.NAME='utm-dor' GROUP BY fi.IDENTITY_PROVIDER;\""]]></ac:plain-text-body></ac:structured-macro>
+<p>An empty result means <strong>no BankID browser ceremony has ever completed here</strong> — which is the current state. The API leg is proven; the interactive leg is not. Closing it needs a human with a BankID test identity from &lt;https://developers.bankid.com/test-portal/test-information&gt;.</p>
+<hr />
+<h2>4. Reading the DOR/DMS side</h2>
+<h3>4.1 Schema trap — column names move between Keycloak versions</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-core exec $DB -- sh -c "mysql -u'$KU' -p'$KPW' -N -B -e \"
+SELECT GROUP_CONCAT(COLUMN_NAME SEPARATOR ' ') FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA='dor_keycloak' AND TABLE_NAME='IDENTITY_PROVIDER';\""]]></ac:plain-text-body></ac:structured-macro>
+<p>On 25/26 this returns <code>PROVIDER_ALIAS</code>, <strong>not</strong> <code>ALIAS</code>. Using <code>ALIAS</code> gives:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[ERROR 1054 (42S22): Unknown column 'i.ALIAS' in 'field list']]></ac:plain-text-body></ac:structured-macro>
+<p>Similarly <code>REALM</code> has <code>REG_EMAIL_AS_USERNAME</code>, not <code>REGISTRATION_EMAIL_AS_USERNAME</code>. <strong>Check <code>information_schema.COLUMNS</code> first, every time.</strong></p>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><code>bit(1)</code> columns render blank under <code>mysql -t</code>. Cast them: <code>CAST(ENABLED AS UNSIGNED)</code>.</p></ac:rich-text-body></ac:structured-macro>
+<h3>4.2 Realm registration settings</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-core exec $DB -- sh -c "mysql -u'$KU' -p'$KPW' -t -e \"
+SELECT NAME, LOGIN_THEME,
+       CAST(REGISTRATION_ALLOWED AS UNSIGNED)   reg,
+       CAST(VERIFY_EMAIL AS UNSIGNED)           verify_email,
+       CAST(LOGIN_WITH_EMAIL_ALLOWED AS UNSIGNED) login_email
+  FROM dor_keycloak.REALM WHERE NAME='utm-dor'\G\""]]></ac:plain-text-body></ac:structured-macro>
+<h3>4.3 The DMS user model (<code>dor_be</code>)</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-core exec $DB -- sh -c "mysql -u'$DU' -p'$DPW' -t -e \"
+SELECT id,email,active,allow_login,verified,verified_by,last_logged_in_to
+  FROM dor_be.users ORDER BY id;
+SELECT ur.user_id,u.email,ur.role_id,r.role_name,ur.org_id
+  FROM dor_be.user_roles ur
+  JOIN dor_be.users u ON u.id=ur.user_id
+  JOIN dor_be.roles r ON r.role_id=ur.role_id ORDER BY ur.user_id;
+SELECT org_id,operator_id,name,active,verified FROM dor_be.organisations;\""]]></ac:plain-text-body></ac:structured-macro>
+<p>Roles: 1 <code>default_user</code>, 2 <code>operator_member</code>, 3 <code>operator_administrator</code>, 4 <code>pilot</code>, 5 <code>administrator</code>\<em>, 6 <code>customer_support</code>\</em>, 7 <code>interim_user</code>, 8 <code>interim_org_user</code>, 9 <code>api_client_app</code>\<em>  (\</em> internal).</p>
+<p><code>users.last_logged_in_to</code> holds the <strong>currently selected organisation</strong>. <code>verified_by = 'MANUAL'</code> on the working accounts — approval is a human step today.</p>
+<h3>4.4 dor-be's API contract</h3>
+<p>dor-be publishes OpenAPI; it is the fastest way to answer "which endpoint does X".</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[TOK=$(curl -s -d client_id=frontend -d username='<user>' -d password='<pw>' -d grant_type=password \
+      "$BASE/realms/utm-dor/protocol/openid-connect/token" \
+      | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+
+curl -s -H "Authorization: Bearer $TOK" https://uas.ops.io/svc-pm/v3/api-docs > dorbe-api.json
+python -c "
+import json,io
+d=json.load(io.open('dorbe-api.json',encoding='utf-8-sig'))
+for path in sorted(d['paths']):
+    for m,op in sorted(d['paths'][path].items()):
+        if m in ('get','post','put','patch','delete'):
+            print('  %-7s %-52s %s'%(m.upper(),path,(op.get('summary') or '')[:50]))
+"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="note" ac:schema-version="1"><ac:rich-text-body><p>Note the <code>utf-8-sig</code> — the response carries a BOM and plain <code>utf-8</code> fails.</p></ac:rich-text-body></ac:structured-macro>
+<p>Endpoints worth knowing:</p>
+<table><tbody><tr><th>Endpoint</th><th>Note</th></tr><tr><td><code>POST /api/users/create</code></td><td><em>"used by the keycloak webhook"</em> — the DMS bridge</td></tr><tr><td><code>POST /api/import/registration/pin</code></td><td>import a national operator registration</td></tr><tr><td><code>POST /api/organisations/createeu</code></td><td>operator registered in another EU country</td></tr><tr><td><code>POST /api/invites/create</code></td><td><code>{email, language}</code> — invite into the current operator</td></tr><tr><td><code>POST /api/invites/accept/{id}</code></td><td>accept an invite</td></tr><tr><td><code>POST /api/operators/{id}/approve</code></td><td><em>"Set operator as verified"</em></td></tr><tr><td><code>GET  /api/users/{email}/permissions</code></td><td>effective roles + permissions</td></tr><tr><td><code>POST /api/organisations/switch/{id}</code></td><td>set the current operator</td></tr></tbody></table>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><strong>There is no <code>POST /api/organisations</code>.</strong> That path answers <code>Allow: GET,HEAD,OPTIONS</code>. Operator identity is anchored to a national registration — see §8.3.</p></ac:rich-text-body></ac:structured-macro>
+<h3>4.5 Who changed what, and when</h3>
+<p>Keycloak records admin actions. This is how the disabled <code>sweden-connect-sandbox</code> was attributed to a human rather than the upgrade:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-core exec $DB -- sh -c "mysql -u'$KU' -p'$KPW' -t -e \"
+SELECT FROM_UNIXTIME(ADMIN_EVENT_TIME/1000) ts, OPERATION_TYPE op,
+       LEFT(RESOURCE_PATH,50) path, AUTH_USER_ID
+  FROM dor_keycloak.ADMIN_EVENT_ENTITY
+ WHERE RESOURCE_PATH LIKE '%identity-provider%'
+ ORDER BY ADMIN_EVENT_TIME DESC LIMIT 8;\""]]></ac:plain-text-body></ac:structured-macro>
+<p>Resolve <code>AUTH_USER_ID</code> to a username:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-core exec $DB -- sh -c "mysql -u'$KU' -p'$KPW' -t -e \"
+SELECT u.USERNAME, r.NAME realm FROM dor_keycloak.USER_ENTITY u
+  JOIN dor_keycloak.REALM r ON r.ID=u.REALM_ID WHERE u.ID='<auth-user-id>';\""]]></ac:plain-text-body></ac:structured-macro>
+<hr />
+<h2>5. Building the Keycloak 26.7.3 image</h2>
+<p>Everything lives in <code>keycloak-skyzr-26/</code>.</p>
+<h3>5.1 Quick path</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[cd keycloak-skyzr-26
+./build.sh                 # build + sanity gate
+./build.sh --push          # and push to Harbor
+./verify.sh harbor.ops.io/utm-devops/keycloak-lfv-26.7.3:1.0.0]]></ac:plain-text-body></ac:structured-macro>
+<h3>5.2 Building where Maven Central is unreachable</h3>
+<p>On the Frequentis build hosts only internal names resolve:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Could not transfer artifact org.apache.maven.plugins:maven-clean-plugin:pom:3.2.0
+  from/to central: repo.maven.apache.org: Temporary failure in name resolution]]></ac:plain-text-body></ac:structured-macro>
+<p><code>build.sh</code> probes for this and falls back to the prebuilt jars. To be explicit:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[PLUGINS=skip ./build.sh --push                              # use providers/ as-is
+MAVEN_MIRROR_URL=https://nexus/repository/maven-public/ ./build.sh
+https_proxy=http://proxy:3128 ./build.sh]]></ac:plain-text-body></ac:structured-macro>
+<p><code>PLUGINS=skip</code> is safe: the sanity gate still checks the full provider set, rejects stale duplicate versions, and re-checks that the sweden-connect jar carries no bundled JAXB.</p>
+<p>Expected jars:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[d85b073b4d6255dc...  apple-social-identity-provider-1.0.2.jar
+531cdb742891439b...  bankid4keycloak-26.0.0-kc26.7.3.jar
+091360cd94abdb63...  basic-storage-provider-1.0.jar
+840c7c1588a99d61...  sweden-connect-provider-0.5.0.jar]]></ac:plain-text-body></ac:structured-macro>
+<h3>5.3 Reconstructing the build context from a running image</h3>
+<p>If <code>providers/</code> and <code>themes/</code> are lost, extract them from the deployed image rather than hunting for sources:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[IMG=harbor.ops.io/utm-devops/keycloak-lfv-25.0.6:1.0.1
+docker pull $IMG
+CID=$(docker create $IMG)
+docker cp $CID:/opt/keycloak/providers/. ./providers/
+docker cp $CID:/opt/keycloak/themes/.    ./themes/
+docker rm -f $CID]]></ac:plain-text-body></ac:structured-macro>
+<p>Recover the recipe of any image:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[docker history --no-trunc --format '{{.CreatedBy}}' $IMG | head -25]]></ac:plain-text-body></ac:structured-macro>
+<p>Themes include <strong><code>lfv</code></strong>, the realm's configured login theme — required, not cosmetic.</p>
+<h3>5.4 The three compatibility fixes</h3>
+<p>None optional; each broke the build or the server.</p>
+<h4>(a) sweden-connect 0.4.10 → 0.5.0 — JAXB collision</h4>
+<p><code>kc.sh build</code> failed:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[ERROR: Unable to build configuration.xml JAXBContext
+ERROR: jakarta.xml.bind.JAXBContextFactory:
+       org.glassfish.jaxb.runtime.v2.JAXBContextFactory not a subtype]]></ac:plain-text-body></ac:structured-macro>
+<p>Diagnose by looking inside the jars:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[for j in providers/*.jar; do
+  n=$(unzip -l "$j" | grep -icE 'jakarta/xml/bind|org/glassfish/jaxb')
+  s=$(unzip -l "$j" | grep -cE 'META-INF/services/jakarta.xml.bind')
+  printf "  %-44s jaxb-classes=%-5s jaxb-services=%s\n" "$(basename $j)" "$n" "$s"
+done]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[  sweden-connect-provider-0.4.10.jar    jaxb-classes=950   jaxb-services=1]]></ac:plain-text-body></ac:structured-macro>
+<p>0.4.10 is a 12.9 MB shaded jar bundling its own JAXB implementation, overriding Keycloak's. <strong>v0.5.0 is the first release targeting <code>keycloak.version 26.7.3</code>, and it stopped shading</strong> — 81 KB, zero JAXB classes.</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[git clone https://github.com/swedenconnect/keycloak-plugins
+cd keycloak-plugins && git archive v0.5.0 | tar -x -C ../swedenconnect-src
+docker run --rm -v "$PWD/../swedenconnect-src:/src" -w /src maven:3.9-eclipse-temurin-21 \
+  mvn -B clean package -DskipTests -pl sweden-connect-provider -am]]></ac:plain-text-body></ac:structured-macro>
+<h4>(b) bankid4keycloak — <code>retrieveToken</code> signature</h4>
+<p>Keycloak 26.7 widened <code>UserAuthenticationIdentityProvider#retrieveToken</code>:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[BankidIdentityProvider is not abstract and does not override abstract method
+retrieveToken(KeycloakSession,FederatedIdentityModel,UserSessionModel,UserModel)]]></ac:plain-text-body></ac:structured-macro>
+<p>Add the four-argument overload in <code>bankid-src/src/main/java/org/keycloak/broker/bankid/BankidIdentityProvider.java</code>, delegating to the existing two-argument one:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[@Override
+public Response retrieveToken(KeycloakSession session, FederatedIdentityModel identity,
+        UserSessionModel userSession, UserModel user) {
+    return retrieveToken(session, identity);
+}]]></ac:plain-text-body></ac:structured-macro>
+<p>BankID issues no OAuth token of its own, so neither extra argument changes the result. Remember <code>import org.keycloak.models.UserSessionModel;</code>.</p>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p>Upstream master targets 26.5.6. The working copy at <code>../bankid4keycloak</code> carries the <em>opposite</em> patch — downgrading the import to <code>IdentityProvider.AuthenticationCallback</code> for a pinned 26.4.6. <strong>Do not apply that here</strong>; 26.7.3 wants the newer API.</p></ac:rich-text-body></ac:structured-macro>
+<h4>(c) bankid4keycloak — protostream version (the dangerous one)</h4>
+<p>This <strong>passed <code>kc.sh build</code></strong> and then killed the server at startup:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[ISPN000659: Component SerializationContextRegistry failed to start
+org/infinispan/protostream/annotations/impl/GeneratedMarshallerBase]]></ac:plain-text-body></ac:structured-macro>
+<p>bankid4keycloak generates Infinispan marshallers at compile time. Upstream pins protostream <strong>15.0.13.Final</strong>; Keycloak 26.7.3 ships <strong>6.0.7</strong>. Find what the base carries, then match it:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[docker run --rm --entrypoint sh quay.io/keycloak/keycloak:26.7.3 -c \
+  'ls /opt/keycloak/lib/lib/main/ | grep -i protostream'
+# org.infinispan.protostream.protostream-6.0.7.jar]]></ac:plain-text-body></ac:structured-macro>
+<p>In <code>bankid-src/pom.xml</code>:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[<keycloak.version>26.7.3</keycloak.version>
+<protostream.version>6.0.7</protostream.version>]]></ac:plain-text-body></ac:structured-macro>
+<p>Rebuild:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[docker run --rm -v "$PWD/bankid-src:/src" -w /src maven:3.9-eclipse-temurin-21 \
+  mvn -B clean package -DskipTests
+cp bankid-src/target/bankid4keycloak-26.0.0-SNAPSHOT.jar \
+   providers/bankid4keycloak-26.0.0-kc26.7.3.jar]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><strong>On every future Keycloak bump, re-check this pin.</strong> A mismatch produces an image that builds cleanly and a server that will not start.</p></ac:rich-text-body></ac:structured-macro>
+<h3>5.5 Base image</h3>
+<p><code>build.sh</code> defaults to <code>quayio.dev.dkr.frequentis.frq/keycloak/keycloak:26.7.3</code>, which resolves only on the Frequentis network. It is byte-identical to the public image — verified:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[docker pull quay.io/keycloak/keycloak:26.7.3
+a=$(docker image inspect quayio.dev.dkr.frequentis.frq/keycloak/keycloak:26.7.3 --format '{{json .RootFS.Layers}}')
+b=$(docker image inspect quay.io/keycloak/keycloak:26.7.3 --format '{{json .RootFS.Layers}}')
+[ "$a" = "$b" ] && echo "IDENTICAL layers" || echo "DIFFERENT"]]></ac:plain-text-body></ac:structured-macro>
+<p>So develop against <code>quay.io</code>, build for real against the mirror:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[docker build --build-arg KEYCLOAK_BASE=quay.io/keycloak/keycloak:26.7.3 -t kc-local .]]></ac:plain-text-body></ac:structured-macro>
+<h3>5.6 OpenShift compatibility</h3>
+<p><code>restricted-v2</code> runs containers with a <strong>random uid</strong> but always gid 0:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[docker run --rm --user 1000670000:0 --entrypoint sh <image> -c '
+  id
+  for d in /opt/keycloak/data /opt/keycloak/data/tmp /opt/keycloak/conf \
+           /opt/keycloak/conf/tls /opt/keycloak/conf/tls-bankid \
+           /opt/keycloak/conf/truststore /opt/keycloak/saml-keys /opt/keycloak/lib/quarkus; do
+    touch $d/.w 2>/dev/null && { echo "OK   $d"; rm -f $d/.w; } || echo "FAIL $d"
+  done']]></ac:plain-text-body></ac:structured-macro>
+<p>The Dockerfile achieves this with <code>chgrp -R 0 /opt/keycloak &amp;&amp; chmod -R g=u /opt/keycloak</code> — <code>g=u</code> copies each file's user bits to its group bits, Red Hat's documented pattern and safer than a blanket <code>777</code>.</p>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><code>readOnlyRootFilesystem</code> is <strong>not</strong> achievable: Keycloak writes <code>/opt/keycloak/data/tmp</code> (theme gzip cache) and <code>lib/quarkus</code>. Mount those as volumes if your SCC demands it.</p></ac:rich-text-body></ac:structured-macro>
+<h3>5.7 Verify before deploying</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[./verify.sh harbor.ops.io/utm-devops/keycloak-lfv-26.7.3:1.0.0
+VERBOSE=1 ./verify.sh <image>       # show readiness probes]]></ac:plain-text-body></ac:structured-macro>
+<p>15 checks, all must pass:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[  PASS  runs as uid 1000 (not root)
+  PASS  arbitrary uid (1000670000:0) can write all runtime dirs
+  PASS  server reaches health/ready=200 under arbitrary uid
+  PASS  no classloader or Infinispan errors
+  PASS  /health/ready -> 200     PASS  /health/live -> 200     PASS  /metrics -> 200
+  PASS  provider registered: "bankid"
+  PASS  provider registered: "saml"
+  PASS  provider registered: "apple"
+  PASS  provider registered: "skyzr-dms-webhook-listener"
+  PASS  provider registered: "skyzr-dms-storage-interceptor"
+  PASS  reports Keycloak 26.7.3
+  PASS  BankID IdP instance created (HTTP 201)]]></ac:plain-text-body></ac:structured-macro>
+<p><code>verify.sh</code> boots the server and drives the Admin API deliberately — <strong><code>kc.sh build</code> succeeding does not mean the providers work</strong>, as fix (c) proved.</p>
+<hr />
+<h2>6. Deploying</h2>
+<h3>6.1 Roll out</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS set image deploy/dor-keycloak \
+  dor-keycloak=harbor.ops.io/utm-devops/keycloak-lfv-26.7.3:1.0.0
+kubectl -n $NS rollout status deploy/dor-keycloak --timeout=300s]]></ac:plain-text-body></ac:structured-macro>
+<h3>6.2 Confirm the upgrade landed</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[KC=$(kubectl -n $NS get pod -l app=dor-keycloak -o jsonpath='{.items[0].metadata.name}')
+kubectl -n $NS logs $KC -c dor-keycloak | grep -iE 'Keycloak .* on JVM|Profile prod'
+kubectl -n $NS logs $KC -c dor-keycloak | grep -iE '\bERROR\b|Exception|ISPN000659|not a subtype'
+
+kubectl -n utm-core exec $DB -- sh -c "mysql -u'$KU' -p'$KPW' -t -e \"
+SELECT ID,DATEEXECUTED FROM dor_keycloak.DATABASECHANGELOG
+ ORDER BY DATEEXECUTED DESC LIMIT 6;\""]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Keycloak 26.7.3 on JVM (powered by Quarkus 3.33.3.1) started in 7.555s.
+Listening on: http://0.0.0.0:8080 and https://0.0.0.0:8443.
+Management interface listening on https://0.0.0.0:9000.
+
+| 26.7.0-cluster-event          | 2026-09-24 05:28:14 |
+| 26.7.0-add-timestamps-client  | 2026-09-24 05:28:12 |]]></ac:plain-text-body></ac:structured-macro>
+<p>Identify exactly which image is running — tags lie, digests do not:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS get pod -l app=dor-keycloak \
+  -o jsonpath='{.items[0].status.containerStatuses[0].imageID}{"\n"}']]></ac:plain-text-body></ac:structured-macro>
+<p>List what Harbor holds, with push times (internal CA ⇒ <code>-k</code>):</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[curl -sk "https://harbor.ops.io/api/v2.0/projects/utm-devops/repositories/keycloak-lfv-26.7.3/artifacts?with_tag=true" \
+| python -c "
+import sys,json
+for a in json.load(sys.stdin):
+    print('  %-8s push=%s size=%sMB digest=%s'%(
+      ','.join(t['name'] for t in a.get('tags') or []), a['push_time'][:19],
+      round(a['size']/1048576), a['digest'][7:19]))
+"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><strong>Naming trap.</strong> Two repositories differ only by <code>-</code> vs <code>.</code>: <code>keycloak-lfv-26-7-3</code> and <code>keycloak-lfv-26.7.3</code>. The <strong>dotted</strong> one is what <code>build.sh</code> targets and what is deployed. The hyphenated repo holds earlier builds (1.0.0 / 1.0.1 / 1.0.3) whose higher tag numbers make them look newer. <strong>Compare <code>push_time</code>, not tag numbers.</strong></p></ac:rich-text-body></ac:structured-macro>
+<h3>6.3 Configuration changes that must accompany the image</h3>
+<p>Keycloak 26 deprecated the Hostname v1 options still in <code>cm/dor-keycloak</code>:</p>
+<table><tbody><tr><th>Key</th><th>Action</th><th>Why</th></tr><tr><td><code>KC_PROXY: edge</code></td><td><strong>remove</strong></td><td>superseded by <code>KC_PROXY_HEADERS=xforwarded</code>, baked into the image — and the ConfigMap value <strong>overrides</strong> it</td></tr><tr><td><code>KC_HOSTNAME_STRICT_HTTPS</code></td><td><strong>remove</strong></td><td>Hostname v1</td></tr><tr><td><code>KC_HOSTNAME</code></td><td><strong>add</strong> <code>https://uas.ops.io/keycloak2/auth</code></td><td>Hostname v2 wants the full public URL</td></tr></tbody></table>
+<p>Reproduce the warning without touching the cluster:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[docker run --rm -e KC_DB=dev-mem -e KC_HTTP_ENABLED=true -e KC_HOSTNAME_STRICT=false \
+  -e KC_HOSTNAME_STRICT_HTTPS=false -e KC_PROXY=edge \
+  -e KC_BOOTSTRAP_ADMIN_USERNAME=a -e KC_BOOTSTRAP_ADMIN_PASSWORD=a \
+  quay.io/keycloak/keycloak:26.7.3 start 2>&1 | grep -i 'WARNING']]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[WARNING: Hostname v1 options [proxy, hostname-strict-https] are still in use
+WARNING: With HTTPS not enabled, `proxy-headers` unset ... requests from the
+proxy to the server will fail CORS checks with 403s because the wrong origin
+will be determined.]]></ac:plain-text-body></ac:structured-macro>
+<p>dor-keycloak sits behind nginx ingress, so this is the highest-risk item.</p>
+<p>Apply:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS patch cm dor-keycloak --type=json -p '[
+  {"op":"remove","path":"/data/KC_PROXY"},
+  {"op":"remove","path":"/data/KC_HOSTNAME_STRICT_HTTPS"},
+  {"op":"add","path":"/data/KC_HOSTNAME","value":"https://uas.ops.io/keycloak2/auth"}
+]'
+kubectl -n $NS rollout restart deploy/dor-keycloak]]></ac:plain-text-body></ac:structured-macro>
+<h3>6.4 Probes</h3>
+<p>The deployment has <strong>no readinessProbe</strong>. In 26.x health is on the <strong>management port 9000 over HTTPS</strong> (because <code>KC_HTTPS_CERTIFICATE_FILE</code> is set), so <code>scheme: HTTPS</code> is mandatory:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">yml</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[ports:
+  - { name: http,       containerPort: 8080 }
+  - { name: management, containerPort: 9000 }
+readinessProbe:
+  httpGet: { path: /health/ready, port: management, scheme: HTTPS }
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 30        # first boot is 60-105 s
+livenessProbe:
+  httpGet: { path: /health/live, port: management, scheme: HTTPS }
+  initialDelaySeconds: 120
+  periodSeconds: 30]]></ac:plain-text-body></ac:structured-macro>
+<h3>6.5 Rollback</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n $NS rollout undo deploy/dor-keycloak]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p>The 25 → 26 <strong>schema migration is not reversible</strong>. Rolling the image back onto a migrated database is unsupported. Back up <code>dor_keycloak</code> before upgrading and rehearse on a copy.</p></ac:rich-text-body></ac:structured-macro>
+<hr />
+<h2>7. End-to-end test</h2>
+<p><strong>Goal:</strong> a pilot logs in and files a flight plan in FLYK.</p>
+<h3>7.1 One command</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[.\e2e\flyk-file-flight-plan.ps1 `
+    -Email    e2e-dronetest@ops.io `
+    -Password '<password>' `
+    -Operator PH-DRN-REG-AX1B2 `
+    -Withdraw]]></ac:plain-text-body></ac:structured-macro>
+<p>Needs only network access to <code>https://uas.ops.io</code> — no cluster access, no browser. <code>-Withdraw</code> retires the plan afterwards.</p>
+<h3>7.2 Preconditions</h3>
+<table><tbody><tr><th>Requirement</th><th>Check</th></tr><tr><td>Keycloak user in realm <code>utm-dor</code></td><td>password-grant token succeeds</td></tr><tr><td>DMS user row</td><td><code>GET /svc-pm/api/users/{email}/permissions</code> → 200</td></tr><tr><td>Member of an operator</td><td><code>GET /svc-pm/api/organisations</code> → a row, not <code>[]</code></td></tr><tr><td><code>allowOperationPlans = true</code></td><td>same call</td></tr><tr><td><code>verified = 1</code></td><td><strong>not required</strong> — see §8.4</td></tr></tbody></table>
+<p>Account used: <code>e2e-dronetest@ops.io</code>, org 1 (<code>Surely Win Dilag</code>, <code>PH-DRN-REG-AX1B2</code>), roles <code>pilot</code> + <code>operator_member</code>, <code>verified = 0</code>.</p>
+<p>Creating such an account from scratch:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[# 1. register through the real form (only a genuine REGISTER event fires the webhook)
+#    -> browser, or scrape the form at /keycloak2/auth/realms/utm-dor/login-actions/registration
+# 2. confirm the DMS row appeared (~10 s later)
+kubectl -n utm-core exec $DB -- sh -c "mysql -u'$DU' -p'$DPW' -t -e \"
+SELECT id,email,active,allow_login,verified FROM dor_be.users ORDER BY id DESC LIMIT 3;\""
+# 3. an operator_administrator invites them, from https://uas.ops.io/pm/ or:
+curl -s -X POST https://uas.ops.io/svc-pm/api/invites/create \
+  -H "Authorization: Bearer <admin's utm-dor token>" -H 'Content-Type: application/json' \
+  -d '{"email":"e2e-dronetest@ops.io","language":"en"}']]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="warning" ac:schema-version="1"><ac:rich-text-body><p>Creating the user via the <strong>Admin API will not work</strong> for this purpose — it fires an admin event, not a <code>REGISTER</code> event, so <code>skyzr-dms-webhook-listener</code> never runs and no DMS row is created.</p></ac:rich-text-body></ac:structured-macro>
+<h3>7.3 What the script does, step by step</h3>
+<p>These are the same calls FLYK's browser client makes.</p>
+<p><strong>Step 1 — start the OIDC login.</strong> <code>GET /avm/auth/skyzr/login</code> redirects to Keycloak with a generated <code>state</code>.</p>
+<p><strong>Step 2 — post the Keycloak login form.</strong> Scrape the form action, POST <code>username</code> / <code>password</code> / <code>credentialId</code>. Ends at <code>/avm/?code=&lt;authorization code&gt;</code>.</p>
+<p><strong>Step 3 — bind the FLYK session.</strong></p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[POST /avm/auth/skyzr/hello
+x-id: <uuid you invent>
+Content-Type: application/json
+
+{"authorizationCode":"<code>"}]]></ac:plain-text-body></ac:structured-macro>
+<p>FLYK exchanges the code, calls dor-be for the profile and <code>/api/organisations</code>, and fills <code>session.email</code> + <code>db.tokens.data[email].user</code>. Response:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">json</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[{"user":{"email":"e2e-dronetest@ops.io","orgId":1,"active":true,
+ "registrationNumbers":["PH-DRN-REG-AX1B2"],
+ "company":{"name":"Surely Win Dilag","allowOperationPlans":true}}}]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><strong>The single biggest gotcha: FLYK sessions are neither cookies nor bearer tokens.</strong> <code>server/db/sessions.js</code> keys on an <strong><code>x-id</code> header</strong> (or <code>?id=</code>), which the browser keeps in <code>localStorage['CapacitorStorage.id']</code>:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[const id = req.get("x-id") || req.query.id;
+if (!id) { ... return next(); }   // req.session stays undefined]]></ac:plain-text-body></ac:structured-macro>
+<p>Send a Keycloak bearer token instead and you get a bare <strong>HTTP 500</strong>, whose real cause appears only in the pod log:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[TypeError: Cannot destructure property 'email' of 'req.session' as it is undefined
+    at /app/server/utm/index.js:1278]]></ac:plain-text-body></ac:structured-macro></ac:rich-text-body></ac:structured-macro>
+<p><strong>Step 4 — borrow geometry.</strong> Pull an existing plan from <code>GET /avm/utm/operationplans.json</code> and reuse its polygon, so the test exercises the flow rather than airspace validity.</p>
+<ac:structured-macro ac:name="info" ac:schema-version="1"><ac:rich-text-body><p><code>operationplans.json</code> returns <code>[]</code> until the session exists — it filters by the session's operator. An empty list is a <em>session</em> symptom, not "no plans".</p></ac:rich-text-body></ac:structured-macro>
+<p><strong>Step 5 — file the plan.</strong></p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[POST /avm/utm/operationplan/notify
+x-id: <same uuid>
+Content-Type: application/json]]></ac:plain-text-body></ac:structured-macro>
+<p>Despite the name, this is the create call. FLYK checks <code>user.registrationNumbers</code> contains <code>body.operator</code> (else <strong>401</strong>), stamps <code>submitTime</code>/<code>updateTime</code>, forces <code>altitudeType</code>, strips <code>suppress</code>, mints a <strong>swim <code>client_credentials</code></strong> token, and calls <code>operation-plans/propose-and-authorize</code>.</p>
+<p><strong>Step 6 — validate.</strong> Re-read <code>operationplans.json</code> and <code>GET /avm/utm/authorization/{id}</code>.</p>
+<h3>7.4 Payload shape</h3>
+<p>Derived from the service's own <code>MODEL_VALIDATION_ERROR</code> — which helpfully lists all 28 accepted properties — and from a live plan. Not from documentation.</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[operationPlan
+  operationPlanId   uuid          REQUIRED
+  version           uuid          REQUIRED        <-- easy to miss
+  operator          string        REQUIRED, must match a registrationNumber
+  state             PROPOSED
+  modeOfOperation   REMOTELY_PILOTED_VLOS | REMOTELY_PILOTED_BVLOS
+  swarmSize, minContOpTime, formationId, formationOpIds
+  publicInfo        { title, description }
+  priority          { priorityText, priorityLevelSimple }
+  takeoffLocation / landingLocation / gcsLocation / controllerLocation
+                    GeoJSON Point
+  contactDetails    { firstName, lastName, emails[], phones[], comments[], fax }
+  flightDetails     { flightNumber, flightType, flightComment }
+  aircraftInfos     { maxTakeoffMassGrams, identificationTechnologies[], ... }
+  operationVolumes[]
+    alias, ordinal, isBVLOS
+    timeBegin, timeEnd            ISO-8601 Z   NOT effectiveTimeBegin/End
+    operationGeometry
+      minAltitude / maxAltitude   { altitudeValue, altitudeType, unitsOfMeasure }
+      geom                        GeoJSON Polygon   NOT horizontalProjection]]></ac:plain-text-body></ac:structured-macro>
+<p>There is <strong>no top-level <code>flightType</code></strong> — <code>modeOfOperation</code> is the field. (<code>flightType</code> exists only inside <code>flightDetails</code>.)</p>
+<h3>7.5 Result</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[== 2. POST /avm/auth/skyzr/hello (binds x-id to the user) ==
+   email=e2e-dronetest@ops.io  orgId=1  active=True
+   registrationNumbers=PH-DRN-REG-AX1B2
+   allowOperationPlans=True
+== 4. filing plan 89eb559e-7f30-4c0b-9f41-8025ae3fdaf8 ==
+   HTTP 200  {"code":1200,"message":"OK",
+              "details":["Operation plan authorization request received"]}
+== 5. validating ==
+   plans 13 -> 14
+   state      : AUTHORIZED
+   authorization: GRANTED   conflicts=0   errors=0
+
+PASS - plan 89eb559e-... is AUTHORIZED / GRANTED
+== 6. withdrawing the test plan ==
+   HTTP 200]]></ac:plain-text-body></ac:structured-macro>
+<p>Authorization is automatic and took ~10 s (<code>startTime</code> 09:12:40 → <code>endTime</code> 09:12:50). Post-withdraw state: <code>CLOSED / WITHDRAWN</code>.</p>
+<h3>7.6 Scoreboard</h3>
+<table><tbody><tr><th>Leg of the diagram</th><th>Result</th></tr><tr><td>Email → Keycloak DOR</td><td><strong>PASS</strong></td></tr><tr><td>Keycloak DOR → DMS webhook</td><td><strong>PASS</strong> — operator row in ~10 s</td></tr><tr><td>Operator membership</td><td><strong>PASS</strong> — invite <code>JOINED</code>, <code>pilot</code> + <code>operator_member</code></td></tr><tr><td>Keycloak DOR → FLYK</td><td><strong>PASS</strong> — session bound, <code>registrationNumbers</code> resolved</td></tr><tr><td>FLYK → flight plan</td><td><strong>PASS</strong> — <code>AUTHORIZED</code> / <code>GRANTED</code></td></tr><tr><td>BankID → Keycloak DOR</td><td><strong>API proven, ceremony not</strong> (§3.4)</td></tr></tbody></table>
+<p>Once Keycloak issues the session the flow is identical regardless of which IdP authenticated the user — so §7 also covers the BankID path from step 3 onward.</p>
+<hr />
+<h2>8. Data flow reference</h2>
+<h3>8.1 BankID authentication</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Browser            Keycloak (dor-keycloak)         BankID API
+   │ 1 click "BankID"      │                     appapi2.test.bankid.com
+   ├──────────────────────▶│ 2 POST /rp/v6.0/auth  (mTLS, keystore.p12)
+   │                       ├───────────────────────────▶│
+   │                       │ 3 orderRef, autoStartToken, qrStartToken/Secret
+   │ 4 QR / launch app     │◀───────────────────────────┤
+   │◀──────────────────────┤                            │
+   │ 5 user approves in the BankID app (PIN/biometric) ▶│
+   │                       │ 6 POST /rp/v6.0/collect  (polled)
+   │                       ├───────────────────────────▶│
+   │                       │ 7 complete + personalNumber, name
+   │ 8 Keycloak session, then OIDC code back to the app │
+   │◀──────────────────────┤                            │]]></ac:plain-text-body></ac:structured-macro>
+<p>Three distinct credentials: our RP certificate (BankID authenticates <em>us</em>), the BankID server certificate (we authenticate <em>them</em>), and the end user's own BankID (BankID authenticates <em>them</em> — never us).</p>
+<h3>8.2 Registration → DMS</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[user registers / first BankID login
+        │  Keycloak REGISTER event
+        ▼  skyzr-dms-webhook-listener
+POST https://uas.ops.io/svc-pm/api/users  ──▶ dor-be
+        ▼
+INSERT dor_be.users        active=1, allow_login=1, verified=0, verified_by='NONE'
+INSERT dor_be.user_roles   role_id=1 default_user, org_id=NULL]]></ac:plain-text-body></ac:structured-macro>
+<p>Measured latency <strong>≈ 10 s</strong> (Keycloak user 04:11:08 → DMS row 04:11:18). Confirm the listener is enabled:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[curl -s -H "Authorization: Bearer $TOKEN" "$BASE/admin/realms/utm-dor" \
+| python -c "import sys,json;print(json.load(sys.stdin)['eventsListeners'])"
+# ['jboss-logging', 'skyzr-dms-webhook-listener']]]></ac:plain-text-body></ac:structured-macro>
+<h3>8.3 Operator identity — three doors, no fourth</h3>
+<table><tbody><tr><th>Path</th><th>Endpoint</th><th>Requires</th></tr><tr><td>Import national registration</td><td><code>POST /api/import/registration/pin</code></td><td><code>registrationNumber</code> + <code>registrationPin</code> (Transportstyrelsen)</td></tr><tr><td>Other EU country</td><td><code>POST /api/organisations/createeu</code></td><td>existing EU registration number</td></tr><tr><td>Join an existing operator</td><td><code>POST /api/invites/accept/{id}</code></td><td>invite from an <code>operator_administrator</code></td></tr></tbody></table>
+<p><strong>Nothing creates an operator from nothing.</strong> Verified: <code>isRegisteringOperator: true</code> on <code>PUT /api/users/{id}</code> returns 200 and flips <code>profileComplete</code>, but creates <strong>no</strong> organisation.</p>
+<p>This is why BankID matters beyond authentication: it supplies the <strong>personal number</strong> that ties a natural person to a national operator registration.</p>
+<p>Consequence for "Email Auto approval": it can auto-verify a user and auto-accept an invite. It <strong>cannot</strong> conjure an operator.</p>
+<h3>8.4 Flight plan creation</h3>
+<p>The end user's token never reaches the plan service:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $UTM_DOR_TOKEN" \
+  https://uas.ops.io/operation-plan-service/v1/operation-plans
+# 401   Bearer error="invalid_token", "Signed JWT rejected:
+#       Another algorithm expected, or no matching key(s) found"]]></ac:plain-text-body></ac:structured-macro>
+<p><code>operation-plan-service</code> trusts only <code>issuer-uri=.../realms/swim</code> with role <code>partner_utm</code>. FLYK brokers with its own credential (<code>server/utm/utm.js → getToken()</code>, <code>grant_type=client_credentials</code>), server-side only:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Pilot ──(utm-dor user token)──▶ FLYK ──(swim client_credentials)──▶ plan service]]></ac:plain-text-body></ac:structured-macro>
+<p><strong>Unverified users can still fly.</strong> <code>cm/flyk</code> sets <code>ALLOW_UNVERIFIED_USER=true</code>, honoured in <code>server/auth/skyzr.js</code>. So <code>dor_be.users.verified = 0</code> does <strong>not</strong> block flight planning — it only blocks dor-be's own portal, where every org-scoped endpoint 403s:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[/svc-pm/api/organisations/1      403   <-- org-scoped
+/svc-pm/api/users/organisation   403
+/svc-pm/api/operators            403
+/svc-pm/api/assets               403
+/svc-pm/api/invites              200   <-- user-scoped
+/svc-pm/api/organisations        200]]></ac:plain-text-body></ac:structured-macro>
+<h3>8.5 Reading FLYK's source when in doubt</h3>
+<p>FLYK is plain Node and readable in place — faster than guessing at its API:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-aviamaps exec $FLYK -- sh -c 'ls -1 /app/server/'
+kubectl -n utm-aviamaps exec $FLYK -- sh -c \
+  "grep -oE 'router\.(post|get|put)\(\s*\"[^\"]+\"' /app/server/utm/index.js | sort -u"
+kubectl -n utm-aviamaps exec $FLYK -- sh -c 'sed -n "1220,1285p" /app/server/utm/index.js']]></ac:plain-text-body></ac:structured-macro>
+<p>Useful routes: <code>/avm/utm/operationplans.json</code>, <code>/avm/utm/operationplan/notify</code> (create), <code>/avm/utm/operationplan/{id}/{activate|withdraw|cancel|endflight}</code>, <code>/avm/utm/authorization/{id}</code>, <code>/avm/auth/skyzr/{login,hello,logout}</code>.</p>
+<hr />
+<h2>9. Troubleshooting catalogue</h2>
+<p>Every one of these was hit for real.</p>
+<h3>9.1 BankID</h3>
+<table><tbody><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr><tr><td>BankID tile missing from the login page</td><td>IdP disabled or jar absent</td><td>§2.4, §1</td></tr><tr><td>Probe: connect timeout / unknown host</td><td>egress or DNS blocked</td><td>check egress to <code>appapi2.test.bankid.com</code></td></tr><tr><td>Probe: <code>unable to find valid certification path</code></td><td>wrong/missing truststore</td><td>§3.1</td></tr><tr><td>Probe: 401 / 403</td><td>BankID rejected the RP certificate</td><td>check expiry (§3.1); test certs are reissued periodically</td></tr><tr><td><code>keytool</code> password error</td><td>production cert ≠ <code>qwerty123</code></td><td>read the password from the IdP config</td></tr></tbody></table>
+<h3>9.2 Keycloak image / startup</h3>
+<table><tbody><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr><tr><td><code>jakarta.xml.bind.JAXBContextFactory ... not a subtype</code></td><td>shaded provider bundling JAXB</td><td>§5.4(a)</td></tr><tr><td><code>retrieveToken(...) not overridden</code></td><td>26.7 API change</td><td>§5.4(b)</td></tr><tr><td><code>ISPN000659 ... GeneratedMarshallerBase</code>, exit 1</td><td>protostream mismatch</td><td>§5.4(c)</td></tr><tr><td>Builds fine, dies at start</td><td>build-time ≠ runtime</td><td>always run <code>verify.sh</code>, not just <code>kc.sh build</code></td></tr><tr><td><code>Hostname v1 options ... still in use</code></td><td><code>KC_PROXY</code> in the ConfigMap</td><td>§6.3</td></tr><tr><td>Pod <code>1/1</code> but not serving</td><td>no readinessProbe</td><td>§6.4</td></tr></tbody></table>
+<h3>9.3 FLYK / flight plans</h3>
+<p>FLYK returns a bare <strong>500 for every downstream failure</strong>. The reason is always in the log:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[kubectl -n utm-aviamaps logs deploy/flyk | grep -iE 'Error fetching|MODEL_VALIDATION|TypeError']]></ac:plain-text-body></ac:structured-macro>
+<table><tbody><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr><tr><td>500, <code>Cannot destructure property 'email' of 'req.session'</code></td><td>bearer token sent instead of <code>x-id</code></td><td>§7.3 step 3</td></tr><tr><td>400 <code>Unrecognized field "flightType"</code></td><td>guessed field name</td><td>use <code>modeOfOperation</code>; the error lists all 28 valid properties</td></tr><tr><td>400 <code>'version' is a required element</code></td><td>omitted</td><td>supply a UUID <code>version</code></td></tr><tr><td>401 before the service is called</td><td><code>body.operator</code> ∉ <code>registrationNumbers</code></td><td>fix operator membership</td></tr><tr><td><code>/svc-pm/api/*</code> org endpoints 403</td><td><code>verified = 0</code></td><td>irrelevant to FLYK; affects only the operator portal</td></tr><tr><td><code>operationplans.json</code> returns <code>[]</code></td><td>no session, so no operator filter</td><td>bind <code>x-id</code> first</td></tr></tbody></table>
+<hr />
+<h2>10. Environment traps</h2>
+<p>Collected because each cost real time.</p>
+<table><tbody><tr><th>Trap</th><th>Symptom</th><th>Workaround</th></tr><tr><td>Keycloak pod has no <code>tar</code></td><td><code>kubectl cp</code> → <code>exec: "tar": not found</code></td><td><code>kubectl exec -i … -- sh -c 'cat &gt; /tmp/x'</code></td></tr><tr><td>Pod has no <code>curl</code>/<code>wget</code>/<code>openssl</code></td><td><code>/dev/tcp</code> also unavailable (shell is <code>dash</code>)</td><td>use <code>java</code> / <code>keytool</code>, or a debug pod</td></tr><tr><td>Git-Bash <code>getent</code> lies about DNS</td><td>reports "NO DNS" for hosts that resolve fine</td><td>use <code>Resolve-DnsName</code> or <code>nslookup</code></td></tr><tr><td>MSYS path translation</td><td><code>working directory 'C:/Program Files/Git/src' is invalid</code></td><td><code>export MSYS_NO_PATHCONV=1</code></td></tr><tr><td><code>KUBECONFIG</code> as a POSIX path</td><td><code>dial tcp 127.0.0.1:8080</code></td><td>use the Windows path</td></tr><tr><td>Docker build context absolute under MSYS</td><td><code>path "/c/Users/..." not found</code></td><td><code>cd "$HERE" &amp;&amp; docker build … .</code></td></tr><tr><td>PowerShell 5.1 <code>-MaximumRedirection 0</code></td><td>throws <code>MaximumRedirectExceeded</code> instead of returning the 302</td><td>let it follow; inspect <code>BaseResponse.ResponseUri</code></td></tr><tr><td>PowerShell function named <code>GM</code></td><td>shadows the <code>Get-Member</code> alias → parser error</td><td>rename it</td></tr><tr><td><code>curl</code> without <code>--max-time</code></td><td>probe loops stall on half-open connections</td><td>always set <code>--max-time</code></td></tr><tr><td>Harbor internal CA</td><td><code>Could not establish trust relationship</code></td><td><code>curl -k</code> for read-only queries</td></tr><tr><td>Keycloak admin token ~60 s</td><td>second call 401s</td><td>fetch and use within one script</td></tr><tr><td><code>bit(1)</code> columns</td><td>render blank under <code>mysql -t</code></td><td><code>CAST(col AS UNSIGNED)</code></td></tr><tr><td>Column names move between KC versions</td><td><code>Unknown column 'i.ALIAS'</code></td><td>check <code>information_schema.COLUMNS</code> first</td></tr><tr><td><code>core-database</code> pod renamed</td><td><code>pods "core-database-..." not found</code></td><td>re-resolve the pod name</td></tr><tr><td>OpenAPI response has a BOM</td><td><code>json.load</code> fails</td><td>open with <code>encoding='utf-8-sig'</code></td></tr></tbody></table>
+<hr />
+<h2>11. Open items</h2>
+<ol><li><strong>BankID browser ceremony has never completed on this cluster.</strong></li></ol>
+<p><code>FEDERATED_IDENTITY</code> is empty for <code>utm-dor</code> (§3.4). Needs a person with a BankID test identity. Everything downstream is covered by §7.</p>
+<ol><li><strong><code>sweden-connect-sandbox</code> is disabled.</strong> Turned off by <code>admin1</code> on</li></ol>
+<p>2026-09-24 05:50, <em>after</em> the 05:28 migration — a human action, not an upgrade side effect (confirmed in <code>ADMIN_EVENT_ENTITY</code>, §4.5). Re-enabling it is also the real test of whether sweden-connect <strong>0.5.0</strong> handles the existing SAML config — the largest unverified delta of the upgrade.</p>
+<ol><li><strong>A synthetic plan is still <code>AUTHORIZED</code>:</strong></li></ol>
+<p><code>157228d7-c325-4481-be86-6495ece9b7b6</code>, window 09:57–10:17Z 2026-09-24 (elapsed). Retire with <code>POST /avm/utm/operationplan/{id}/withdraw</code> + <code>x-id</code>.</p>
+<ol><li><strong>Test account left in place:</strong> <code>e2e-dronetest@ops.io</code>, <code>dor_be.users</code> id 12,</li></ol>
+<p>org 1, <code>pilot</code> + <code>operator_member</code>, <code>verified = 0</code>. Keep as a regression account or remove.</p>
+<ol><li><strong><code>verifyEmail</code> was set to <code>false</code></strong> on <code>utm-dor</code> to resolve a contradiction</li></ol>
+<p>(flag on, required-action provider disabled ⇒ users stamped with an action that could never run). Prior config: <code>_utm-dor-realm-backup.json</code>.</p>
+<ol><li><strong>"Email Auto approval" is half implemented</strong> — auto-create yes, operator</li></ol>
+<p>membership no (§8.3).</p>
+<ol><li><strong><code>cm/dor-keycloak</code> still carries Hostname v1 options</strong> and the deployment</li></ol>
+<p>still has <strong>no readinessProbe</strong> (§6.3, §6.4).</p>
+<ol><li><code>basic-storage-provider-1.0.jar</code> and <code>apple-social-identity-provider-1.0.2.jar</code></li></ol>
+<p>are vendor binaries with no local source; they register on 26.7.3, but untested paths remain untested.</p>
+<ol><li>bankid4keycloak has <strong>no upstream release targeting 26.7.3</strong>; this build uses</li></ol>
+<p>master (<code>34a5932</code>) plus the two fixes in §5.4.</p>
+<hr />
+<h2>12. Artifacts</h2>
+<table><tbody><tr><th>Path</th><th>Purpose</th></tr><tr><td><code>e2e/flyk-file-flight-plan.ps1</code></td><td>the §7 E2E — login, session, file a plan, validate, optionally withdraw</td></tr><tr><td><code>e2e/BankidProbe.java</code></td><td>mTLS probe of the BankID API (§3.2)</td></tr><tr><td><code>keycloak-skyzr-26/Dockerfile</code></td><td>the 26.7.3 image</td></tr><tr><td><code>keycloak-skyzr-26/build.sh</code></td><td>build + sanity gate; offline-aware (§5.2)</td></tr><tr><td><code>keycloak-skyzr-26/verify.sh</code></td><td>15 checks against a live container (§5.7)</td></tr><tr><td><code>keycloak-skyzr-26/bankid-src/</code></td><td>bankid4keycloak with the two fixes (§5.4 b, c)</td></tr><tr><td><code>keycloak-skyzr-26/swedenconnect-src/</code></td><td>sweden-connect v0.5.0 source (§5.4 a)</td></tr><tr><td><code>_utm-dor-realm-backup.json</code></td><td>realm config before the <code>verifyEmail</code> change</td></tr></tbody></table>

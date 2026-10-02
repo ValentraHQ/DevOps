@@ -1,0 +1,58 @@
+# Instrumentation CR for the OTel Operator (otel-operator.yaml) -- this is
+# what actually gets injected into annotated pods. One CR, utm-services
+# namespace, covers Java and Node.js; cross-namespace references (e.g. from
+# utm-skyzr) use "utm-services/utm-app-tracing" as the annotation value.
+#
+# Exporter points at the existing Tempo instance (utm-statistics) -- the
+# same one verified end-to-end this session (loki-config.yaml's sibling
+# work): OTLP HTTP on :4318, already open (distributor.receivers.otlp.http
+# in tempo-config.yaml). No new collector, no new storage.
+#
+# WHY :4318 (http/protobuf), not :4317 (grpc): the Operator's Java/Node
+# auto-instrumentation defaults the OTLP protocol to http/protobuf
+# regardless of which port you point it at. Originally pointed at :4317 (the
+# gRPC port) -- confirmed broken via the Java agent's own logs: "OTLP
+# exporter endpoint port is likely incorrect for protocol http/protobuf"
+# followed by "Failed to export spans/logs. The request could not be
+# executed." on every flush. Node showed the identical failure mode but
+# silently (no error-level logging by default) -- same root cause, since
+# both share this one CR.
+#
+# Sampler: parentbased_always_on. Deliberate for the PILOT phase only -- only
+# 1-2 low-traffic services are annotated (see the bottom of this file's
+# comment and the kubectl patch commands in the handoff), so full sampling
+# costs nothing here and guarantees real data to verify against, rather than
+# a ratio sampler maybe/maybe-not producing a trace to check. Revisit before
+# fanning out to the remaining ~29 services -- always_on across all of them
+# is not the right default at that scale.
+#
+# Images: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-
+# {java,nodejs} re-hosted to harbor.ops.io/utm-devops, same reasoning as
+# otel-operator.yaml and every other third-party image in this repo.
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: utm-app-tracing
+  namespace: utm-services
+spec:
+  exporter:
+    endpoint: http://utm-statistics-tempo.utm-statistics.svc.cluster.local:4318
+  env:
+    # Tempo is traces-only -- it has no OTLP logs/metrics receiver (confirmed:
+    # every export attempt for those two signals gets a plain 404). The Java
+    # and Node SDKs both default to trying all three signal types regardless
+    # of what the backend actually supports; without this, every instrumented
+    # service logs a 404 warning every few seconds, forever, for nothing.
+    - name: OTEL_METRICS_EXPORTER
+      value: "none"
+    - name: OTEL_LOGS_EXPORTER
+      value: "none"
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_always_on
+  java:
+    image: harbor.ops.io/utm-devops/autoinstrumentation-java:2.31.1
+  nodejs:
+    image: harbor.ops.io/utm-devops/autoinstrumentation-nodejs:0.78.0

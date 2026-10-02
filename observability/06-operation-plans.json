@@ -1,0 +1,2149 @@
+{
+ "uid": "utm-obs-06-opplans",
+ "title": "06 - Operation Plan Lifecycle",
+ "description": "**Purpose:** lifecycle view of live UTM operation plans and their authorisation/activation outcomes.\n\n**Data sources:** Elasticsearch `core-es7` — `operation-plan-wrapper` (time field `operationPlan.submitTime`) and `operation-plan-result` (time field `operationPlanResult.startTime`).\n\n**Counting rule:** all counts come from parent-document aggregations. `_cat/indices` inflates these indices because `operationPlan.operationVolumes`, `aircraftInfos` and `uasRegistrations` are nested types — never use `docs.count` as a plan count.\n\n**Data freshness:** submitTime spans 2026-04-15 → 2026-05-12. Not a live feed.\n\n**Known gap:** `ops-subscription` cannot be visualised — all fields are non-aggregatable `text` and the index has no date field. See the panel at the foot of this dashboard.",
+ "tags": [
+  "utm-observability",
+  "operations"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 0,
+ "weekStart": "",
+ "refresh": "1m",
+ "preload": false,
+ "time": {
+  "from": "now-1y",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 115,
+   "type": "row",
+   "title": "Live Operation Plans (operation-plan-wrapper)",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 116,
+   "type": "stat",
+   "title": "Live Operation Plans",
+   "description": "operation-plan-wrapper document count — the authoritative live plan figure, from _count rather than _cat/indices.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 117,
+   "type": "stat",
+   "title": "Distinct Operators",
+   "description": "operationPlan.operator cardinality.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 5,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "operationPlan.operator"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 118,
+   "type": "stat",
+   "title": "Plan Results",
+   "description": "operation-plan-result documents.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opr"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 10,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opr"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlanResult.startTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlanResult.startTime"
+    }
+   ]
+  },
+  {
+   "id": 119,
+   "type": "stat",
+   "title": "Timeouts",
+   "description": "operation-plan-result where state=TIMEOUT. A high share indicates the authorisation/activation path is not completing.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opr"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 14,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 0
+       },
+       {
+        "color": "#EAB839",
+        "value": 1
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background_solid",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opr"
+     },
+     "query": "operationPlanResult.state:TIMEOUT",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlanResult.startTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlanResult.startTime"
+    }
+   ]
+  },
+  {
+   "id": 120,
+   "type": "stat",
+   "title": "Last Data",
+   "description": "Most recent `operationPlan.updateTime` in this dataset. Compare with the dashboard time range — this data may not be live.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 18,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "dateTimeAsIso"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "max",
+       "field": "operationPlan.updateTime"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.updateTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.updateTime"
+    }
+   ]
+  },
+  {
+   "id": 121,
+   "type": "row",
+   "title": "Lifecycle State",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "id": 122,
+   "type": "barchart",
+   "title": "Plans by Lifecycle State",
+   "description": "operationPlan.state — confirmed values: PROPOSED, AUTHORIZED, ACTIVATED, CLOSED. Only states present in the data are shown; no statuses are invented.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlan.state",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 123,
+   "type": "barchart",
+   "title": "Result Outcomes",
+   "description": "operationPlanResult.state — GRANTED / TIMEOUT / DENIED.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opr"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opr"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlanResult.state",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "operationPlanResult.startTime"
+    }
+   ]
+  },
+  {
+   "id": 124,
+   "type": "barchart",
+   "title": "Result Type",
+   "description": "operationPlanResult.operationPlanResultType — AUTHORIZATION vs ACTIVATION.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opr"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opr"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlanResult.operationPlanResultType",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "operationPlanResult.startTime"
+    }
+   ]
+  },
+  {
+   "id": 125,
+   "type": "timeseries",
+   "title": "Plans Submitted Over Time",
+   "description": "operationPlan.submitTime, broken down by state.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 14
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlan.state",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      },
+      {
+       "id": "3",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 126,
+   "type": "timeseries",
+   "title": "Results Over Time",
+   "description": "operationPlanResult.startTime by outcome. Watch for TIMEOUT clustering, which indicates a systemic processing problem rather than user behaviour.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opr"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 14
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opr"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlanResult.state",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      },
+      {
+       "id": "3",
+       "type": "date_histogram",
+       "field": "operationPlanResult.startTime",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlanResult.startTime"
+    }
+   ]
+  },
+  {
+   "id": 127,
+   "type": "row",
+   "title": "Operations Profile",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 22
+   },
+   "panels": []
+  },
+  {
+   "id": 128,
+   "type": "barchart",
+   "title": "Mode of Operation",
+   "description": "operationPlan.modeOfOperation — VLOS vs BVLOS.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 0,
+    "y": 23
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlan.modeOfOperation",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 129,
+   "type": "barchart",
+   "title": "Plans by Operator",
+   "description": "operationPlan.operator.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 8,
+    "y": 23
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlan.operator",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 130,
+   "type": "barchart",
+   "title": "Plans by Priority",
+   "description": "operationPlan.priority.priorityLevelSimple.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 7,
+    "w": 8,
+    "x": 16,
+    "y": 23
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operationPlan.priority.priorityLevelSimple",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 131,
+   "type": "text",
+   "title": "Live vs Statistics copy — and the ops-subscription limitation",
+   "gridPos": {
+    "h": 11,
+    "w": 24,
+    "x": 0,
+    "y": 30
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "### Live store vs statistics copy\n\n| Source | Count | Notes |\n|---|---|---|\n| `operation-plan-wrapper` (live, core-es7) | **41** | authoritative, via `_count` |\n| `utm-op-statistics` (statistics copy) | **37** | feeds the Drone Plan Dashboard |\n\nThe difference is **4 documents**. This is a small lag, **not** evidence of a broken pipeline. Do not raise an incident on this gap alone — corroborate with ingest errors in `utm-statistics-service` before concluding anything.\n\nNote the live store has a genuine lifecycle spread (PROPOSED / AUTHORIZED / ACTIVATED / CLOSED) whereas the statistics copy is entirely CLOSED — they capture different stages, so a count difference is expected by design.\n\n---\n\n### `ops-subscription` — NOT TIME-FILTERABLE\n\nConfirmed via `_field_caps`: every field (`state`, `subscriptionType`, `providerId`, `dataFormat`) is mapped as **`text`** and reports **`aggregatable: false`**. The index also has **no date field**.\n\nGrafana's Elasticsearch datasource always applies a time filter and requires aggregatable fields for terms panels, so no live subscription panel can be built. Validated count at build time: **8 documents**.\n\n**To fix:** add `keyword` sub-fields and a timestamp to the `ops-subscription` mapping."
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  },
+  {
+   "id": 132,
+   "type": "row",
+   "title": "Geographic Distribution",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 41
+   },
+   "panels": []
+  },
+  {
+   "id": 133,
+   "type": "geomap",
+   "title": "Takeoff Locations",
+   "description": "geohash_grid over operationPlan.takeoffLocation — a parent-level geo_point, aggregated directly with no derived index. Marker size scales with the number of plans in each cell. The view fits the data because the plans form two widely separated clusters; their mean would sit in open ocean.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 13,
+    "w": 12,
+    "x": 0,
+    "y": 42
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "continuous-BlYlRd"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "basemap": {
+     "config": {},
+     "name": "Layer 0",
+     "type": "xyz"
+    },
+    "controls": {
+     "mouseWheelZoom": true,
+     "showAttribution": true,
+     "showDebug": false,
+     "showMeasure": true,
+     "showScale": true,
+     "showZoom": true
+    },
+    "layers": [
+     {
+      "type": "markers",
+      "name": "Takeoff Locations",
+      "opacity": 0.75,
+      "tooltip": true,
+      "filterData": {
+       "id": "byRefId",
+       "options": "A"
+      },
+      "location": {
+       "geohash": "operationPlan.takeoffLocation",
+       "mode": "geohash"
+      },
+      "config": {
+       "showLegend": false,
+       "style": {
+        "color": {
+         "fixed": "dark-blue"
+        },
+        "opacity": 0.6,
+        "size": {
+         "field": "Count",
+         "fixed": 5,
+         "max": 18,
+         "min": 4
+        },
+        "symbol": {
+         "fixed": "img/icons/marker/circle.svg",
+         "mode": "fixed"
+        },
+        "symbolAlign": {
+         "horizontal": "center",
+         "vertical": "center"
+        },
+        "textConfig": {
+         "fontSize": 12,
+         "offsetX": 0,
+         "offsetY": 0,
+         "textAlign": "center",
+         "textBaseline": "middle"
+        }
+       }
+      }
+     }
+    ],
+    "tooltip": {
+     "mode": "details"
+    },
+    "view": {
+     "allLayers": true,
+     "id": "fit",
+     "lastOnly": false,
+     "layer": "Takeoff Locations",
+     "shared": false,
+     "padding": 12
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "geohash_grid",
+       "field": "operationPlan.takeoffLocation",
+       "settings": {
+        "precision": "5"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 134,
+   "type": "geomap",
+   "title": "Ground Control Station Locations",
+   "description": "geohash_grid over operationPlan.gcsLocation. This field is populated on 100% of plans (44/44), so it is the most complete geographic signal available — takeoff/landing are present on 38/44.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 13,
+    "w": 12,
+    "x": 12,
+    "y": 42
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "continuous-BlYlRd"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "basemap": {
+     "config": {},
+     "name": "Layer 0",
+     "type": "xyz"
+    },
+    "controls": {
+     "mouseWheelZoom": true,
+     "showAttribution": true,
+     "showDebug": false,
+     "showMeasure": true,
+     "showScale": true,
+     "showZoom": true
+    },
+    "layers": [
+     {
+      "type": "heatmap",
+      "name": "Ground Control Station Locations",
+      "opacity": 0.75,
+      "tooltip": true,
+      "filterData": {
+       "id": "byRefId",
+       "options": "A"
+      },
+      "location": {
+       "geohash": "operationPlan.gcsLocation",
+       "mode": "geohash"
+      },
+      "config": {
+       "blur": 15,
+       "radius": 10,
+       "weight": {
+        "fixed": 1,
+        "max": 1,
+        "min": 0
+       }
+      }
+     }
+    ],
+    "tooltip": {
+     "mode": "details"
+    },
+    "view": {
+     "allLayers": true,
+     "id": "fit",
+     "lastOnly": false,
+     "layer": "Ground Control Station Locations",
+     "shared": false,
+     "padding": 12
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "geohash_grid",
+       "field": "operationPlan.gcsLocation",
+       "settings": {
+        "precision": "5"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 135,
+   "type": "row",
+   "title": "Location Data Coverage",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 55
+   },
+   "panels": []
+  },
+  {
+   "id": 136,
+   "type": "stat",
+   "title": "Plans with Takeoff Location",
+   "description": "operationPlan.takeoffLocation present. Plans without it cannot be plotted on the takeoff map.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 0,
+    "y": 56
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "_exists_:operationPlan.takeoffLocation",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 137,
+   "type": "stat",
+   "title": "Plans with Landing Location",
+   "description": "operationPlan.landingLocation present.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 5,
+    "x": 5,
+    "y": 56
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "_exists_:operationPlan.landingLocation",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 138,
+   "type": "stat",
+   "title": "Plans with GCS Location",
+   "description": "operationPlan.gcsLocation present — expected to be every plan.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 10,
+    "y": 56
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "_exists_:operationPlan.gcsLocation",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 139,
+   "type": "stat",
+   "title": "Total Live Plans",
+   "description": "All documents in operation-plan-wrapper, for comparison with the coverage figures beside it.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "core-es7-opw"
+   },
+   "gridPos": {
+    "h": 5,
+    "w": 4,
+    "x": 14,
+    "y": 56
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "core-es7-opw"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "operationPlan.submitTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "operationPlan.submitTime"
+    }
+   ]
+  },
+  {
+   "id": 140,
+   "type": "text",
+   "title": "Reading these maps",
+   "gridPos": {
+    "h": 5,
+    "w": 6,
+    "x": 18,
+    "y": 56
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "**No derived index is used here.** `operation-plan-wrapper` stores four **parent-level `geo_point`** fields, which Grafana aggregates directly. (Dashboard 05 needed a derivation only because zone geometry is `geo_shape` inside a `nested` field.)\n\n**Coverage is not uniform** — compare the stats to the left against *Total Live Plans*. A plan missing `takeoffLocation` is absent from that map but still counted everywhere else on this dashboard.\n\n**Two operational theatres.** Verified geohash clusters: Philippines (~14°N 121°E, operator `PH-DRN-REG-AX1B2`) and Sweden (~59°N 15°E, operator `FRQ`). The arithmetic centroid of all plans falls in open ocean between them, which is why both maps fit to data rather than centring.\n\n**Trajectories are not plotted.** `operationTrajectory.trajectoryElements` holds lat/lon as separate float arrays; flattening loses the pairing, so drawing flight paths would require a derivation like dashboard 05's."
+   },
+   "pluginVersion": "12.1.1"
+  }
+ ]
+}

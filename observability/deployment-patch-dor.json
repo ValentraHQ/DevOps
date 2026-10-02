@@ -1,0 +1,18 @@
+[
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env",
+    "value": [
+      {
+        "name": "DOR_RO_PASSWORD",
+        "valueFrom": {
+          "secretKeyRef": {
+            "name": "grafana-dor-ro",
+            "key": "password",
+            "optional": true
+          }
+        }
+      }
+    ]
+  }
+]

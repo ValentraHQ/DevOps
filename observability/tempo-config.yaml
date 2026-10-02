@@ -1,0 +1,89 @@
+# Tempo config for utm-statistics. Extracted from the live ConfigMap
+# (utm-statistics-tempo) on 2026-10-02 -- it predates this repo and was never
+# committed; this file is the first time it exists in Git.
+#
+# This edit adds metrics_generator with the local-blocks processor, which is
+# what TraceQL metrics queries (anything with a `| rate()`, `| quantile_over_time()`,
+# etc. pipe stage) need. Without it, the querier has nothing to ask and fails
+# with "error finding generators in Querier.SpanMetricsSummary: empty ring".
+#
+# WHY local-blocks, not the streaming span-metrics/service-graphs processors:
+# local-blocks computes metrics on demand by scanning already-ingested trace
+# blocks -- no separate metrics pipeline, no remote_write target, no new
+# storage class. Exactly what's needed to answer ad-hoc TraceQL metrics
+# queries from Explore/dashboards, nothing more.
+#
+# WHY ring.kvstore.store: inmemory -- Tempo's metrics-generator ring defaults
+# to memberlist, which expects gossip config for a multi-replica setup. This
+# is a single, unclustered Tempo pod (same reasoning as Loki's ring config in
+# loki-config.yaml) -- inmemory is correct and is the direct fix for the
+# "empty ring" error, not a workaround.
+#
+# processor.local_blocks.{filter_server_spans,flush_to_storage} require Tempo
+# >=2.6 -- the image must be bumped from 2.5.0 to harbor.ops.io/utm-devops/
+# grafana-tempo:2.10.8 (latest 2.x; NOT 3.x -- Tempo 3.0 moved the
+# metrics-generator to consume from Kafka instead of the old gRPC push path,
+# which this cluster doesn't have, and would likely break this feature again)
+# BEFORE or AT THE SAME TIME as this ConfigMap change -- applying these two
+# keys to a still-running 2.5.0 pod risks an unrecognized-config rejection.
+# Verified before this bump: /var/tempo/blocks holds zero real trace blocks
+# (only tempo_cluster_seed.json), so the vParquet2-removed-in-2.10 migration
+# risk does not apply here -- there is nothing old-format to fail to read.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: utm-statistics-tempo
+  namespace: utm-statistics
+  labels:
+    app: utm-statistics-tempo
+data:
+  tempo.yaml: |
+    stream_over_http_enabled: true
+
+    server:
+      http_listen_port: 3200
+
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: "0.0.0.0:4317"
+            http:
+              endpoint: "0.0.0.0:4318"
+        zipkin:
+          endpoint: "0.0.0.0:9411"
+
+    compactor:
+      compaction:
+        block_retention: 720h
+
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/blocks
+        wal:
+          path: /var/tempo/wal
+        pool:
+          max_workers: 100
+          queue_depth: 10000
+
+    ingester:
+      max_block_bytes: 5000000
+
+    metrics_generator:
+      storage:
+        path: /var/tempo/generator-wal
+      ring:
+        kvstore:
+          store: inmemory
+      processor:
+        local_blocks:
+          filter_server_spans: false   # without this, only server spans count -- misses most of this suite's span shapes
+          flush_to_storage: true       # without this, rate()/compare() only ever see the live window, never historical data
+
+    overrides:
+      defaults:
+        metrics_generator:
+          processors: [local-blocks]

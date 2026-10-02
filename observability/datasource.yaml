@@ -1,0 +1,225 @@
+apiVersion: 1          # ← THIS WAS MISSING
+
+datasources:
+  - name: elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://utm-statistics-es7.utm-statistics.svc.cluster.local:9200
+    basicAuth: false
+    uid: bdq1z7uvssu80d
+    isDefault: true
+    jsonData:
+      index: 'utm-alerting-statistics*,utm-op-statistics*'
+      timeField: 'recordUpdateTime'
+  - name: generic-statistics
+    type: elasticsearch
+    access: proxy
+    url: http://utm-statistics-es7.utm-statistics.svc.cluster.local:9200
+    basicAuth: false
+    uid: bddeduvss4e621
+    isDefault: false
+    jsonData:
+      index: 'utm-generic-statistics*'
+      timeField: 'timestamp'
+  - name: utm-services-logs
+    type: elasticsearch
+    access: proxy
+    url: http://utm-statistics-es7.utm-statistics.svc.cluster.local:9200
+    basicAuth: false
+    uid: es-logs-uid
+    isDefault: false
+    jsonData:
+      index: 'utm-services-logs*'
+      timeField: '@timestamp'
+      logMessageField: body
+      logLevelField: severity
+  # ---------------------------------------------------------------------
+  # Loki -- closes the "Application Logs — NOT AVAILABLE" gap documented
+  # in 08-observability-coverage.json panel 110. Fed by the alloy-logs
+  # DaemonSet (alloy-logs.yaml), which tails /var/log/pods on every node
+  # and ships real container logs here, labeled by namespace/pod/container.
+  #
+  # utm-services-logs (above) stays as-is: it points at a genuinely absent
+  # ES index and is a separate, already-documented gap for a different log
+  # path (app-level structured logs shipped to ES), not something Loki
+  # replaces.
+  # ---------------------------------------------------------------------
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki.utm-statistics.svc.cluster.local:3100
+    uid: loki-uid
+    isDefault: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: jaeger-uid
+          matcherRegex: "trace_id=(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://utm-statistics-jaeger.utm-statistics.svc.cluster.local:16686
+    uid: jaeger-uid
+    isDefault: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: loki-uid
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+        filterByTraceID: true
+        filterBySpanID: true
+        tags:
+          - key: k8s.pod.name
+            value: pod
+          - key: k8s.namespace.name
+            value: namespace
+      nodeGraph:
+        enabled: true
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://utm-statistics-tempo.utm-statistics.svc.cluster.local:3200
+    uid: tempo-uid
+    isDefault: false
+    jsonData:
+      httpMethod: GET
+      tracesToLogsV2:
+        datasourceUid: loki-uid
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+        filterByTraceID: true
+        filterBySpanID: true
+        customQuery: false
+        tags:
+          - key: k8s.pod.name
+            value: pod
+          - key: k8s.namespace.name
+            value: namespace
+      tracesToMetrics:
+        datasourceUid: prometheus-uid
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+        tags:
+          - key: k8s.pod.name
+            value: pod
+          - key: k8s.namespace.name
+            value: namespace
+      serviceMap:
+        datasourceUid: prometheus-uid
+      nodeGraph:
+        enabled: true
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+    uid: prometheus-uid
+    isDefault: false
+    jsonData:
+      exemplarTraceIdDestinations:
+        - name: traceID
+          datasourceUid: tempo-uid
+
+  # ---------------------------------------------------------------------
+  # core-es7 (utm-core) — live operational Elasticsearch.
+  # Added for the UTM Observability suite (dashboards 05 and 06).
+  #
+  # Grafana's Elasticsearch datasource binds ONE index pattern and ONE time
+  # field per datasource. The core-es7 indices we need have different time
+  # fields, so one datasource per index is required. They all point at the
+  # same in-cluster Elasticsearch service — no new ES instance, and no
+  # external exposure.
+  # ---------------------------------------------------------------------
+  - name: core-es7-uas
+    type: elasticsearch
+    access: proxy
+    url: http://core-es7.utm-core.svc.cluster.local:9200
+    basicAuth: false
+    uid: core-es7-uas
+    isDefault: false
+    jsonData:
+      index: 'uas_9.0.0'
+      timeField: 'submitTime'
+      maxConcurrentShardRequests: 5
+      logMessageField: ''
+      logLevelField: ''
+
+  - name: core-es7-opw
+    type: elasticsearch
+    access: proxy
+    url: http://core-es7.utm-core.svc.cluster.local:9200
+    basicAuth: false
+    uid: core-es7-opw
+    isDefault: false
+    jsonData:
+      index: 'operation-plan-wrapper*'
+      timeField: 'operationPlan.submitTime'
+      maxConcurrentShardRequests: 5
+
+  - name: core-es7-opr
+    type: elasticsearch
+    access: proxy
+    url: http://core-es7.utm-core.svc.cluster.local:9200
+    basicAuth: false
+    uid: core-es7-opr
+    isDefault: false
+    jsonData:
+      index: 'operation-plan-result*'
+      timeField: 'operationPlanResult.startTime'
+      maxConcurrentShardRequests: 5
+
+  # ---------------------------------------------------------------------
+  # dor_be (Drone Operator Registry) -- MariaDB on core-database.
+  #
+  # Uses the grafana_ro account created by dor-grafana-readonly-user.sql:
+  # SELECT only, column-scoped, dor_be schema only. Personal columns
+  # (email, phone, birthdate, document file names) are not granted, so they
+  # are unreachable even from Grafana's Explore view.
+  #
+  # The password is NOT stored here. $DOR_RO_PASSWORD is interpolated from
+  # an environment variable sourced from secret/grafana-dor-ro, so this
+  # ConfigMap stays safe to commit to Git.
+  #
+  # NOTE: dor_be is a LIVE transactional database serving the /pm/ portal.
+  # Panels aggregate only, and the dashboard refreshes at 5m, not 30s.
+  # ---------------------------------------------------------------------
+  - name: dor-be-mysql
+    type: mysql
+    uid: dor-be-mysql
+    url: core-database.utm-core.svc.cluster.local:3306
+    database: dor_be
+    user: grafana_ro
+    isDefault: false
+    secureJsonData:
+      password: $DOR_RO_PASSWORD
+    jsonData:
+      maxOpenConns: 4
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      timeInterval: "5m"
+
+  # ---------------------------------------------------------------------
+  # uas-zones-geo -- derived, Grafana-mappable copy of uas_9.0.0.
+  #
+  # uas_9.0.0 stores geometry as geo_shape inside a `nested` field, and
+  # Grafana's Elasticsearch datasource can aggregate neither. This index
+  # carries a parent-level `centroid` geo_point computed from each zone's
+  # polygon, which geohash_grid CAN aggregate -- so dashboard 05 renders a
+  # real map instead of declaring one unavailable.
+  #
+  # Built by uas-zones-geo-build.sh (read-only derivation; the source index
+  # is never modified). It is a point-in-time copy -- dashboard 05 carries a
+  # freshness panel comparing its count against uas_9.0.0 so drift is visible.
+  # ---------------------------------------------------------------------
+  - name: core-es7-uasgeo
+    type: elasticsearch
+    access: proxy
+    url: http://core-es7.utm-core.svc.cluster.local:9200
+    basicAuth: false
+    uid: core-es7-uasgeo
+    isDefault: false
+    jsonData:
+      index: 'uas-zones-geo'
+      timeField: 'submitTime'
+      maxConcurrentShardRequests: 5

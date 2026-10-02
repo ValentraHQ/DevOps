@@ -1,0 +1,68 @@
+# Scrape config for the core Keycloak (utm-core/keycloak, Keycloak 23.0.5).
+#
+# ENABLED BY: KC_METRICS_ENABLED=true on the deployment. Before that,
+# /keycloak/auth/metrics returned 404 and Prometheus held no Keycloak metrics.
+#
+# WHY A SEPARATE SERVICE:
+# the existing `keycloak` Service carries NO labels (metadata.labels is null),
+# so a ServiceMonitor selector cannot match it. It is also a NodePort serving
+# live platform authentication on 30002 — not something to edit for a metrics
+# scrape. A dedicated headless ClusterIP selecting the same pods adds the
+# scrape path without touching it.
+#
+# PATH: metrics live under the Quarkus relative path, KC_HTTP_RELATIVE_PATH
+# = /keycloak/auth, so the endpoint is /keycloak/auth/metrics (not /metrics).
+#
+# WHAT THIS YIELDS (verified: 153 metric lines):
+#   jvm_*      23 families  heap, GC, threads, classloading
+#   agroal_*   17 families  DB connection pool -- Keycloak's usual bottleneck
+#   base_*     16 families  MicroProfile JVM base
+#   process_*   5 families  CPU, file descriptors
+#
+# WHAT IT DOES NOT YIELD:
+#   keycloak_* login/registration counters  (0 families)
+#   http_*     request rate / latency       (0 families)
+# Those require the separate keycloak-metrics-spi extension, which is not
+# bundled in this image. Login telemetry therefore still comes from
+# keycloak.event_entity, which is richer anyway -- it carries the error reason.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-metrics
+  namespace: utm-core
+  labels:
+    app: keycloak
+    app.kubernetes.io/component: keycloak-metrics
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: keycloak
+  ports:
+    - name: metrics
+      port: 8180
+      targetPort: 8180
+      protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: keycloak
+  namespace: utm-core
+  labels:
+    release: kube-prometheus-stack     # required by the Prometheus CR selector
+    app: keycloak
+spec:
+  namespaceSelector:
+    matchNames:
+      - utm-core
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: keycloak-metrics
+  endpoints:
+    - port: metrics
+      path: /keycloak/auth/metrics
+      interval: 30s
+      scrapeTimeout: 20s
+      honorLabels: true

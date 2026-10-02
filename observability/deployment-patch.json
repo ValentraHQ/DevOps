@@ -1,0 +1,21 @@
+[
+  {
+    "op": "add",
+    "path": "/spec/template/spec/volumes/-",
+    "value": {
+      "name": "grafana-dashboards-observability",
+      "configMap": {
+        "name": "grafana-dashboards-observability",
+        "defaultMode": 420
+      }
+    }
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/volumeMounts/-",
+    "value": {
+      "name": "grafana-dashboards-observability",
+      "mountPath": "/var/lib/grafana/dashboards-observability"
+    }
+  }
+]

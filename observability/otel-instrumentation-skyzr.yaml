@@ -1,0 +1,26 @@
+# Same pattern as otel-instrumentation.yaml -- see that file for the
+# port/env fixes this bakes in from the start. Java only in this namespace
+# (dor-acg, dor-be, dor-data-importer); dor-acg-keycloak and dor-keycloak
+# deliberately excluded (identity infra, per the earlier explicit decision);
+# dor-acg-fe/dor-fe are nginx (confirmed via /proc inspection), not eligible;
+# saml-idp is Apache/PHP, not eligible via Java/Node auto-instrumentation.
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: utm-app-tracing
+  namespace: utm-skyzr
+spec:
+  exporter:
+    endpoint: http://utm-statistics-tempo.utm-statistics.svc.cluster.local:4318
+  env:
+    - name: OTEL_METRICS_EXPORTER
+      value: "none"
+    - name: OTEL_LOGS_EXPORTER
+      value: "none"
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_always_on
+  java:
+    image: harbor.ops.io/utm-devops/autoinstrumentation-java:2.31.1

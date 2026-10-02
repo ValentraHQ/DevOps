@@ -1,0 +1,28 @@
+# Same as otel-instrumentation.yaml (utm-services), one Instrumentation CR
+# per namespace since the CR is namespace-scoped. Port and env fixes from
+# the utm-services pilot (see that file's comments for why) are baked in
+# here from the start -- not re-discovered the hard way a second time.
+#
+# Only geoserver in utm-core gets annotated (see otel-fanout-patches.ps1) --
+# everything else here (mariadb, elasticsearch x3, postgres, redis, adminer,
+# keycloak) is infra/datastore/identity-provider, not a traceable app.
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: utm-app-tracing
+  namespace: utm-core
+spec:
+  exporter:
+    endpoint: http://utm-statistics-tempo.utm-statistics.svc.cluster.local:4318
+  env:
+    - name: OTEL_METRICS_EXPORTER
+      value: "none"
+    - name: OTEL_LOGS_EXPORTER
+      value: "none"
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_always_on
+  java:
+    image: harbor.ops.io/utm-devops/autoinstrumentation-java:2.31.1

@@ -1,0 +1,1154 @@
+{
+ "uid": "utm-obs-07-users",
+ "title": "07 - User Activity & Adoption",
+ "description": "**Purpose:** product adoption and user-activity analysis from front-end telemetry.\n\n**Data source:** Elasticsearch `utm-generic-statistics*` (utm-statistics-es7), time field `timestamp`.\n\n**Privacy:** only `userIdAnonymized` is used. No identifiable user information is queried or displayed.\n\n**Data freshness:** 2026-03-23 → 2026-08-10. This is the freshest business dataset in the platform, but it is still historical — it is not a live feed.\n\n**Known gaps:** `location`, `userRoles`, `param1`/`param2` are unpopulated and `userAgent` is non-aggregatable `text`. All are declared in the gap panel rather than rendered as empty charts.",
+ "tags": [
+  "utm-observability",
+  "users",
+  "adoption"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 0,
+ "weekStart": "",
+ "refresh": "5m",
+ "preload": false,
+ "time": {
+  "from": "now-1y",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 132,
+   "type": "row",
+   "title": "Adoption KPIs",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 133,
+   "type": "stat",
+   "title": "Events",
+   "description": "Total events in utm-generic-statistics for the selected range.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 134,
+   "type": "stat",
+   "title": "Unique Users",
+   "description": "Cardinality of userIdAnonymized. Anonymised identifiers only — no personally identifiable data is exposed by this dashboard.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 5,
+    "x": 5,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "userIdAnonymized"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 135,
+   "type": "stat",
+   "title": "Applications",
+   "description": "Distinct `application` values emitting telemetry.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 10,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "application"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 136,
+   "type": "stat",
+   "title": "Event Types",
+   "description": "Distinct `event` values.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 14,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "event"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 137,
+   "type": "stat",
+   "title": "Last Data",
+   "description": "Most recent `timestamp` in this dataset. Compare with the dashboard time range — this data may not be live.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 6,
+    "x": 18,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "unit": "dateTimeAsIso"
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "value",
+    "graphMode": "none",
+    "justifyMode": "auto",
+    "orientation": "auto",
+    "textMode": "auto",
+    "wideLayout": true,
+    "showPercentChange": false,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "max",
+       "field": "timestamp"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 138,
+   "type": "row",
+   "title": "Activity",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 5
+   },
+   "panels": []
+  },
+  {
+   "id": 139,
+   "type": "timeseries",
+   "title": "Event Timeline",
+   "description": "Events over time by type. The selected dashboard range is shown in the time picker — this dataset ends 2026-08-10.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 16,
+    "x": 0,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "event",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      },
+      {
+       "id": "3",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 140,
+   "type": "barchart",
+   "title": "Events by Type",
+   "description": "`event` — confirmed values: pageload, visibilitychange, deconflict, plan.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 16,
+    "y": 6
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "axisPlacement": "auto",
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "event",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 141,
+   "type": "table",
+   "title": "Application Adoption",
+   "description": "Per-application event volume and unique anonymised users.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 15
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "application"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Application"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Count"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Events"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "gradient"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Unique Count"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Unique Users"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": true,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Events"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      },
+      {
+       "id": "3",
+       "type": "cardinality",
+       "field": "userIdAnonymized"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "application",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "20"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 142,
+   "type": "timeseries",
+   "title": "Unique Users Over Time",
+   "description": "Distinct userIdAnonymized per interval — the adoption trend.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bddeduvss4e621"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 15
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "max",
+      "mean"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bddeduvss4e621"
+     },
+     "query": "",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "userIdAnonymized"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "timestamp",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "timeField": "timestamp"
+    }
+   ]
+  },
+  {
+   "id": 143,
+   "type": "text",
+   "title": "Unpopulated user-dimension fields — NO DATA",
+   "gridPos": {
+    "h": 9,
+    "w": 24,
+    "x": 0,
+    "y": 23
+   },
+   "options": {
+    "mode": "markdown",
+    "code": {
+     "language": "plaintext",
+     "showLineNumbers": false,
+     "showMiniMap": false
+    },
+    "content": "### Status: FIELDS EXIST, VALUES EMPTY\n\nThe brief lists `location`, `userRoles` and `userAgent` as available dimensions. They are present in the mapping but aggregating across all 635 documents returns **zero buckets**:\n\n| Field | Mapping | Result |\n|---|---|---|\n| `location` | keyword | empty |\n| `userRoles` | keyword | empty |\n| `param1` / `param2` | keyword | empty |\n| `userAgent` | **text** | not aggregatable |\n\nNo role, location or user-agent breakdowns are built, because an empty chart would suggest *no activity* rather than *this dimension is not being captured*.\n\nNote `userAgent` is additionally mapped as `text`, so even once populated it would need a `.keyword` sub-field before it could be aggregated.\n\n**Action:** confirm with the `flyk-web` telemetry owner whether these fields are expected to be emitted."
+   },
+   "pluginVersion": "12.1.1",
+   "transparent": false
+  }
+ ]
+}

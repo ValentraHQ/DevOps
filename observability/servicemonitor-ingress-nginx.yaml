@@ -1,0 +1,60 @@
+# Scrape config for ingress-nginx controller metrics (port 10254).
+#
+# APPROACH: a dedicated ClusterIP Service + ServiceMonitor.
+#
+# Why not a PodMonitor: this prometheus-operator no longer honours
+# `targetPort`, and PodMonitor requires a NAMED containerPort. Port 10254 is
+# not declared in the DaemonSet, so naming it would require editing the
+# DaemonSet -- which restarts all four controllers. That matters here because
+# the Kubernetes API itself is reached through this ingress (rancher.ops.io),
+# so a controller restart briefly takes the cluster API offline.
+#
+# Why not add a port to the existing ingress-nginx-controller Service: it is a
+# LoadBalancer managed by MetalLB and serves live 80/443 traffic. Editing it
+# risks a reconfiguration of the production VIP for no benefit.
+#
+# A separate ClusterIP Service selecting the same pods adds a scrape path
+# without touching a single existing object.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-metrics
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: controller-metrics
+spec:
+  type: ClusterIP
+  clusterIP: None          # headless: scrape every controller pod individually
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: controller
+  ports:
+    - name: metrics
+      port: 10254
+      targetPort: 10254
+      protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+  labels:
+    release: kube-prometheus-stack     # required by the Prometheus CR selector
+    app.kubernetes.io/name: ingress-nginx
+spec:
+  namespaceSelector:
+    matchNames:
+      - ingress-nginx
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+      app.kubernetes.io/component: controller-metrics
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 20s
+      honorLabels: true

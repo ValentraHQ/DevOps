@@ -1,0 +1,1423 @@
+{
+ "uid": "utm-obs-01-health",
+ "title": "01 - Platform Health",
+ "description": "**Purpose:** the primary operational dashboard. Answers *what is failing and where* for Kubernetes workloads across all utm-* namespaces.\n\n**Data sources:** Prometheus / kube-state-metrics.\n\n**Interpretation:** the Restart Leaderboard reports the cumulative counter AND the 1h rate. A high total with a zero rate is historical damage that has since stabilised; a non-zero rate is an active crash loop.\n\n**Drill-down:** Namespace Health → *02 - Kubernetes Workloads* → *03 - Nodes* → *04 - Ceph*.\n\n**Limitation:** container-level failure reasons are available, but application logs are NOT (no log shipper). See *08 - Observability Coverage*.",
+ "tags": [
+  "utm-observability",
+  "health"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 41,
+ "version": 0,
+ "weekStart": "",
+ "refresh": "30s",
+ "preload": false,
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "timepicker": {
+  "refresh_intervals": [
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "30m",
+   "1h"
+  ],
+  "time_options": [
+   "15m",
+   "1h",
+   "6h",
+   "24h",
+   "7d",
+   "30d"
+  ]
+ },
+ "fiscalYearStartMonth": 0,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "templating": {
+  "list": [
+   {
+    "name": "namespace",
+    "label": "Namespace",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus-uid"
+    },
+    "definition": "label_values(kube_pod_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}, namespace)",
+    "query": {
+     "qryType": 1,
+     "query": "label_values(kube_pod_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}, namespace)",
+     "refId": "namespace"
+    },
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "regex": "",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0,
+    "description": "UTM namespaces discovered from kube-state-metrics."
+   },
+   {
+    "name": "pod",
+    "label": "Pod",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus-uid"
+    },
+    "definition": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)",
+    "query": {
+     "qryType": 1,
+     "query": "label_values(kube_pod_info{namespace=~\"$namespace\"}, pod)",
+     "refId": "pod"
+    },
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "regex": "",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0,
+    "description": "Filtered by the selected namespace."
+   },
+   {
+    "name": "node",
+    "label": "Node",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus-uid"
+    },
+    "definition": "label_values(kube_node_info, node)",
+    "query": {
+     "qryType": 1,
+     "query": "label_values(kube_node_info, node)",
+     "refId": "node"
+    },
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "regex": "",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0,
+    "description": "Cluster nodes."
+   },
+   {
+    "name": "deployment",
+    "label": "Deployment",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus-uid"
+    },
+    "definition": "label_values(kube_deployment_status_replicas{namespace=~\"$namespace\"}, deployment)",
+    "query": {
+     "qryType": 1,
+     "query": "label_values(kube_deployment_status_replicas{namespace=~\"$namespace\"}, deployment)",
+     "refId": "deployment"
+    },
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "regex": "",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0,
+    "description": "Deployments in the selected namespace."
+   }
+  ]
+ },
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 131,
+   "type": "row",
+   "title": "Restart Leaderboard — extreme loops must never hide in an average",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "panels": []
+  },
+  {
+   "id": 132,
+   "type": "table",
+   "title": "Pod Restart Leaderboard",
+   "description": "Every container in utm-* namespaces ranked by cumulative restarts, with the 1h restart rate and current waiting reason. A container with thousands of restarts is visible here even when cluster averages look normal.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 11,
+    "w": 24,
+    "x": 0,
+    "y": 1
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Total Restarts"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "gradient"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "green",
+           "value": 0
+          },
+          {
+           "color": "#EAB839",
+           "value": 10
+          },
+          {
+           "color": "orange",
+           "value": 100
+          },
+          {
+           "color": "red",
+           "value": 1000
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Restarts (1h)"
+      },
+      "properties": [
+       {
+        "id": "decimals",
+        "value": 1
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "green",
+           "value": 0
+          },
+          {
+           "color": "#EAB839",
+           "value": 1
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Waiting"
+      },
+      "properties": [
+       {
+        "id": "custom.hidden",
+        "value": true
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Total Restarts"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace,pod,container) (kube_pod_container_status_restarts_total{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace,pod,container) (increase(kube_pod_container_status_restarts_total{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}[1h]))",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace,pod,reason) (kube_pod_container_status_waiting_reason{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"} > 0)",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    }
+   ],
+   "transformations": [
+    {
+     "id": "joinByField",
+     "options": {
+      "byField": "pod",
+      "mode": "outer"
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "Time 1": true,
+       "Time 2": true,
+       "Time 3": true,
+       "namespace 2": true,
+       "namespace 3": true,
+       "container 2": true
+      },
+      "renameByName": {
+       "namespace 1": "Namespace",
+       "namespace": "Namespace",
+       "pod": "Pod",
+       "container 1": "Container",
+       "container": "Container",
+       "Value #A": "Total Restarts",
+       "Value #B": "Restarts (1h)",
+       "reason": "Waiting Reason",
+       "Value #C": "Waiting"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": 133,
+   "type": "timeseries",
+   "title": "Container Restart Rate by Pod",
+   "description": "5m rate of container restarts. Rate — not the raw counter — is what distinguishes an active crash loop from historical damage.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 12
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 15,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "topk(15, sum by (namespace,pod) (rate(kube_pod_container_status_restarts_total{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}[5m])))",
+     "legendFormat": "{{namespace}}/{{pod}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 134,
+   "type": "timeseries",
+   "title": "Pod Phase Distribution",
+   "description": "Pod phases over time across utm-* namespaces. A rising Pending band usually means unschedulable pods or volume attach failures.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 12
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "last"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (phase) (kube_pod_status_phase{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "{{phase}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 135,
+   "type": "row",
+   "title": "Deployment Availability",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 20
+   },
+   "panels": []
+  },
+  {
+   "id": 136,
+   "type": "table",
+   "title": "Deployment Availability",
+   "description": "Desired vs available replicas with computed availability %. Any row below 100% has at least one replica that is not serving.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 14,
+    "x": 0,
+    "y": 21
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Availability %"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percentunit"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "gradient"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "red",
+           "value": null
+          },
+          {
+           "color": "orange",
+           "value": 0.5
+          },
+          {
+           "color": "#EAB839",
+           "value": 0.99
+          },
+          {
+           "color": "green",
+           "value": 1
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Unavailable"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "green",
+           "value": 0
+          },
+          {
+           "color": "red",
+           "value": 1
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": false,
+      "displayName": "Availability %"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace,deployment) (kube_deployment_status_replicas{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace,deployment) (kube_deployment_status_replicas_available{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace,deployment) (kube_deployment_status_replicas_unavailable{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    }
+   ],
+   "transformations": [
+    {
+     "id": "joinByField",
+     "options": {
+      "byField": "deployment",
+      "mode": "outer"
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "Time 1": true,
+       "Time 2": true,
+       "Time 3": true,
+       "namespace 2": true,
+       "namespace 3": true
+      },
+      "renameByName": {
+       "namespace 1": "Namespace",
+       "deployment": "Deployment",
+       "Value #A": "Desired",
+       "Value #B": "Available",
+       "Value #C": "Unavailable"
+      }
+     }
+    },
+    {
+     "id": "calculateField",
+     "options": {
+      "alias": "Availability %",
+      "mode": "binary",
+      "binary": {
+       "left": {
+        "matcher": {
+         "id": "byName",
+         "options": "Available"
+        }
+       },
+       "operator": "/",
+       "right": {
+        "matcher": {
+         "id": "byName",
+         "options": "Desired"
+        }
+       }
+      },
+      "replaceFields": false
+     }
+    }
+   ]
+  },
+  {
+   "id": 137,
+   "type": "timeseries",
+   "title": "Unavailable Replicas Over Time",
+   "description": "Sustained non-zero values indicate a workload that never recovered, not a transient rollout.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 10,
+    "x": 14,
+    "y": 21
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "palette-classic"
+     },
+     "noValue": "NO DATA",
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 0,
+      "fillOpacity": 70,
+      "gradientMode": "none",
+      "showPoints": "auto",
+      "pointSize": 5,
+      "spanNulls": false,
+      "axisPlacement": "auto",
+      "axisLabel": "",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "barAlignment": 0,
+      "insertNulls": false,
+      "axisBorderShow": false,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      },
+      "thresholdsStyle": {
+       "mode": "off"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "last",
+      "max"
+     ],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace) (kube_deployment_status_replicas_unavailable{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}) > 0",
+     "legendFormat": "{{namespace}}",
+     "instant": false,
+     "format": "time_series",
+     "editorMode": "code",
+     "range": true
+    }
+   ]
+  },
+  {
+   "id": 138,
+   "type": "row",
+   "title": "Namespace Health",
+   "collapsed": false,
+   "gridPos": {
+    "h": 1,
+    "w": 24,
+    "x": 0,
+    "y": 31
+   },
+   "panels": []
+  },
+  {
+   "id": 139,
+   "type": "table",
+   "title": "Namespace Health Summary",
+   "description": "Per-namespace rollup. Use this to decide which namespace to open in *02 - Kubernetes Workloads*.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus-uid"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 24,
+    "x": 0,
+    "y": 32
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "noValue": "NO DATA",
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Memory"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU (cores)"
+      },
+      "properties": [
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Pending"
+      },
+      "properties": [
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "green",
+           "value": 0
+          },
+          {
+           "color": "#EAB839",
+           "value": 1
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Restarts (1h)"
+      },
+      "properties": [
+       {
+        "id": "decimals",
+        "value": 0
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "gradient"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "green",
+           "value": 0
+          },
+          {
+           "color": "#EAB839",
+           "value": 1
+          },
+          {
+           "color": "red",
+           "value": 20
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Restarts (1h)"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "count by (namespace) (kube_pod_info{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace) (kube_pod_status_phase{phase=\"Running\",namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace) (kube_pod_status_phase{phase=\"Pending\",namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "D",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace) (increase(kube_pod_container_status_restarts_total{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\"}[1h]))",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "E",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\",container!=\"\"}[5m]))",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    },
+    {
+     "refId": "F",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus-uid"
+     },
+     "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=~\"utm-core|utm-services|utm-skyzr|utm-aviamaps|utm-statistics|utm-devops\",container!=\"\"})",
+     "legendFormat": "",
+     "instant": true,
+     "format": "table",
+     "editorMode": "code",
+     "range": false
+    }
+   ],
+   "transformations": [
+    {
+     "id": "joinByField",
+     "options": {
+      "byField": "namespace",
+      "mode": "outer"
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "Time 1": true,
+       "Time 2": true,
+       "Time 3": true,
+       "Time 4": true,
+       "Time 5": true,
+       "Time 6": true
+      },
+      "renameByName": {
+       "namespace": "Namespace",
+       "Value #A": "Pods",
+       "Value #B": "Running",
+       "Value #C": "Pending",
+       "Value #D": "Restarts (1h)",
+       "Value #E": "CPU (cores)",
+       "Value #F": "Memory"
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

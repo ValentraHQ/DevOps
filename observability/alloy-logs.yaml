@@ -1,0 +1,163 @@
+# Grafana Alloy log shipper for utm-statistics, closing the second half of the
+# "Application Logs — NOT AVAILABLE" gap in 08-observability-coverage.json
+# panel 110 (Loki itself is the first half, loki-config.yaml).
+#
+# WHY Alloy, not Promtail: Promtail reaches EOL 2026-03-02 (confirmed against
+# Grafana's own deprecation notice) — already past EOL relative to today.
+# Alloy is Grafana's current, maintained log shipper and Promtail's direct
+# replacement.
+#
+# WHY hostPath + CRI log parsing, not the Kubernetes log-subresource API:
+# this cluster's kubelet-mediated API path (which the log-subresource depends
+# on) was the exact thing broken by the Sept 2026 cert-expiry incident. A
+# DaemonSet reading /var/log/pods directly has no dependency on kube-apiserver
+# TLS being healthy to do its core job — it only needs the API for the
+# optional discovery.kubernetes metadata enrichment (pod/namespace/container
+# labels), which can degrade gracefully without blocking log collection.
+#
+# WHY no PVC: per-node hostPath-read, emptyDir-write. Doesn't touch Ceph CSI
+# at all, so the node-004 rbd/cephfs CrashLoopBackOff (see loki-config.yaml)
+# is a non-issue here — this DaemonSet runs on every node, node-004 included.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alloy-logs
+  namespace: utm-statistics
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: alloy-logs
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "nodes"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: alloy-logs
+subjects:
+  - kind: ServiceAccount
+    name: alloy-logs
+    namespace: utm-statistics
+roleRef:
+  kind: ClusterRole
+  name: alloy-logs
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-logs-config
+  namespace: utm-statistics
+  labels:
+    app: alloy-logs
+data:
+  config.alloy: |
+    discovery.kubernetes "pods" {
+      role = "pod"
+      selectors {
+        role  = "pod"
+        field = "spec.nodeName=" + env("NODE_NAME")
+      }
+    }
+
+    discovery.relabel "pod_logs" {
+      targets = discovery.kubernetes.pods.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label  = "namespace"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label  = "pod"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label  = "container"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label  = "node"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+        separator     = "/"
+        target_label  = "__path__"
+        replacement   = "/var/log/pods/*$1/*.log"
+      }
+    }
+
+    local.file_match "pod_logs" {
+      path_targets = discovery.relabel.pod_logs.output
+    }
+
+    loki.source.file "pod_logs" {
+      targets    = local.file_match.pod_logs.targets
+      forward_to = [loki.process.pod_logs.receiver]
+    }
+
+    loki.process "pod_logs" {
+      forward_to = [loki.write.default.receiver]
+
+      // containerd writes logs in CRI format:
+      // "<ts> <stream> <P|F> <log line>" — strip that envelope, keep the
+      // real timestamp and stream (stdout/stderr) as a label.
+      stage.cri {}
+    }
+
+    loki.write "default" {
+      endpoint {
+        url = "http://loki.utm-statistics.svc.cluster.local:3100/loki/api/v1/push"
+      }
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alloy-logs
+  namespace: utm-statistics
+  labels:
+    app: alloy-logs
+spec:
+  selector:
+    matchLabels:
+      app: alloy-logs
+  template:
+    metadata:
+      labels:
+        app: alloy-logs
+    spec:
+      serviceAccountName: alloy-logs
+      tolerations:
+        - operator: Exists    # collect from every node, taints included
+      containers:
+        - name: alloy
+          image: harbor.ops.io/utm-devops/alloy:v1.20.1
+          args:
+            - run
+            - /etc/alloy/config.alloy
+            - --storage.path=/var/lib/alloy/data
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            runAsUser: 0    # must read root-owned host log files
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 200m, memory: 256Mi }
+          volumeMounts:
+            - { name: config,   mountPath: /etc/alloy }
+            - { name: pod-logs, mountPath: /var/log/pods, readOnly: true }
+            - { name: data,     mountPath: /var/lib/alloy }
+      volumes:
+        - name: config
+          configMap: { name: alloy-logs-config }
+        - name: pod-logs
+          hostPath: { path: /var/log/pods, type: Directory }
+        - name: data
+          emptyDir: {}

@@ -1,0 +1,2012 @@
+{
+ "annotations": {
+  "list": [
+   {
+    "builtIn": 1,
+    "type": "dashboard",
+    "datasource": {
+     "type": "grafana",
+     "uid": "-- Grafana --"
+    },
+    "enable": true,
+    "hide": true,
+    "iconColor": "rgba(0, 211, 255, 1)",
+    "name": "Annotations & Alerts"
+   }
+  ]
+ },
+ "editable": true,
+ "fiscalYearStartMonth": 0,
+ "graphTooltip": 1,
+ "links": [
+  {
+   "title": "00 Overview",
+   "type": "link",
+   "url": "/d/utm-obs-00-executive",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "01 Health",
+   "type": "link",
+   "url": "/d/utm-obs-01-health",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "02 Workloads",
+   "type": "link",
+   "url": "/d/utm-obs-02-workloads",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "03 Nodes",
+   "type": "link",
+   "url": "/d/utm-obs-03-nodes",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "04 Ceph",
+   "type": "link",
+   "url": "/d/utm-obs-04-ceph",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "05 UAS Zones",
+   "type": "link",
+   "url": "/d/utm-obs-05-uas",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "06 Op Plans",
+   "type": "link",
+   "url": "/d/utm-obs-06-opplans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "07 Users",
+   "type": "link",
+   "url": "/d/utm-obs-07-users",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "08 Coverage",
+   "type": "link",
+   "url": "/d/utm-obs-08-coverage",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "09 Drone Plans",
+   "type": "link",
+   "url": "/d/utm-drone-plans",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "10 DOR Registry",
+   "type": "link",
+   "url": "/d/utm-obs-10-dor",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "11 Keycloak",
+   "type": "link",
+   "url": "/d/utm-obs-11-keycloak",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  },
+  {
+   "title": "12 Logs",
+   "type": "link",
+   "url": "/d/utm-obs-12-logs",
+   "icon": "dashboard",
+   "tooltip": "",
+   "tags": [],
+   "asDropdown": false,
+   "targetBlank": false,
+   "includeVars": true,
+   "keepTime": true
+  }
+ ],
+ "panels": [
+  {
+   "id": 100,
+   "type": "stat",
+   "title": "Total Drone Plans",
+   "description": "Total operation plans matching the current filters.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 0
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "none",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 101,
+   "type": "stat",
+   "title": "Unique Operators",
+   "description": "Distinct operators.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 0
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "none",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "operator"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 102,
+   "type": "stat",
+   "title": "Total Flight Distance",
+   "description": "Sum of flightDistanceInKm.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 0
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "unit": "lengthkm",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "none",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "sum",
+       "field": "flightDistanceInKm"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 103,
+   "type": "stat",
+   "title": "Avg Flight Duration",
+   "description": "Average actualDurationInSeconds.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 0
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "unit": "s",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "none",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "avg",
+       "field": "actualDurationInSeconds"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 104,
+   "type": "stat",
+   "title": "Max Altitude",
+   "description": "Peak maximumAltitude.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 0
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "unit": "lengthm",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "none",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "max",
+       "field": "maximumAltitude"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 105,
+   "type": "stat",
+   "title": "Reserved Airspace",
+   "description": "Sum of reservedAreaSizeInSquareMeters.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 0
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "unit": "areaM2",
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "none",
+    "graphMode": "none",
+    "justifyMode": "center",
+    "orientation": "auto",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "showPercentChange": false,
+    "textMode": "auto",
+    "wideLayout": true
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "sum",
+       "field": "reservedAreaSizeInSquareMeters"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "1y",
+        "min_doc_count": "1",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 110,
+   "type": "timeseries",
+   "title": "Drone Plans Over Time (by state)",
+   "description": "Bucketed on recordUpdateTime so the x-axis matches the dashboard time picker.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 16,
+    "x": 0,
+    "y": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 80,
+      "lineWidth": 0,
+      "barAlignment": 0,
+      "barWidthFactor": 0.8,
+      "axisPlacement": "left",
+      "axisLabel": "Drone plans",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "normal"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "sum"
+     ],
+     "displayMode": "table",
+     "placement": "right",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "state",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      },
+      {
+       "id": "3",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 111,
+   "type": "piechart",
+   "title": "Plans by State",
+   "description": "",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 16,
+    "y": 4
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "displayLabels": [
+     "name",
+     "percent"
+    ],
+    "pieType": "donut",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": true
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "state",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 112,
+   "type": "timeseries",
+   "title": "New Drone Plans (PROPOSED)",
+   "description": "Plans still in PROPOSED state.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 13
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 80,
+      "lineWidth": 0,
+      "barAlignment": 0,
+      "barWidthFactor": 0.8,
+      "axisPlacement": "left",
+      "axisLabel": "Proposed plans",
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      },
+      "stacking": {
+       "group": "A",
+       "mode": "none"
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [],
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:PROPOSED",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "3",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 113,
+   "type": "barchart",
+   "title": "Plans by Priority",
+   "description": "priority.priorityLevelSimple",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 13
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "axisPlacement": "auto",
+      "fillOpacity": 80,
+      "lineWidth": 1,
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "priority.priorityLevelSimple",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 114,
+   "type": "piechart",
+   "title": "Mode of Operation",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 0,
+    "y": 22
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "displayLabels": [
+     "name",
+     "percent"
+    ],
+    "pieType": "donut",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": true
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "modeOfOperation",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 115,
+   "type": "piechart",
+   "title": "Plans by Organization",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 8,
+    "y": 22
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "displayLabels": [
+     "name",
+     "percent"
+    ],
+    "pieType": "donut",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": true
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "sourceOrganization",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "_count",
+        "size": "10"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 116,
+   "type": "table",
+   "title": "Top 20 Operators",
+   "description": "Distinct operation plans per operator.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 9,
+    "w": 8,
+    "x": 16,
+    "y": 22
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "operator"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Operator"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Unique Count"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Operation Plans"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "gradient"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "footer": {
+     "show": true,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "Operation Plans"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "cardinality",
+       "field": "operationPlanId"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "terms",
+       "field": "operator",
+       "settings": {
+        "min_doc_count": "1",
+        "order": "desc",
+        "orderBy": "1",
+        "size": "20"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 117,
+   "type": "geomap",
+   "title": "Drone Plan Density",
+   "description": "Heatmap of calculatedCenterPoint (geo_point).",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 13,
+    "w": 24,
+    "x": 0,
+    "y": 31
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "shades"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "basemap": {
+     "config": {},
+     "name": "Layer 0",
+     "type": "xyz"
+    },
+    "controls": {
+     "mouseWheelZoom": true,
+     "showAttribution": true,
+     "showDebug": false,
+     "showMeasure": false,
+     "showScale": true,
+     "showZoom": true
+    },
+    "layers": [
+     {
+      "type": "heatmap",
+      "name": "Plan density",
+      "opacity": 0.6,
+      "tooltip": true,
+      "config": {
+       "blur": 13,
+       "radius": 9,
+       "weight": {
+        "fixed": 1,
+        "max": 1,
+        "min": 0
+       }
+      },
+      "filterData": {
+       "id": "byRefId",
+       "options": "A"
+      },
+      "location": {
+       "geohash": "calculatedCenterPoint",
+       "mode": "geohash"
+      }
+     }
+    ],
+    "tooltip": {
+     "mode": "details"
+    },
+    "view": {
+     "allLayers": true,
+     "id": "coords",
+     "lat": 58.320246,
+     "lon": 15.131,
+     "zoom": 7,
+     "lastOnly": false,
+     "layer": "Plan density",
+     "shared": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "geohash_grid",
+       "field": "calculatedCenterPoint",
+       "settings": {
+        "precision": "5"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 118,
+   "type": "timeseries",
+   "title": "Requested vs Actual Duration",
+   "description": "Mean requestedDurationInSeconds vs actualDurationInSeconds.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 44
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 10,
+      "showPoints": "auto",
+      "pointSize": 5,
+      "axisPlacement": "auto",
+      "spanNulls": true,
+      "scaleDistribution": {
+       "type": "linear"
+      },
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     },
+     "unit": "s"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "calcs": [
+      "mean"
+     ],
+     "displayMode": "table",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "avg",
+       "field": "requestedDurationInSeconds"
+      },
+      {
+       "id": "3",
+       "type": "avg",
+       "field": "actualDurationInSeconds"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "4",
+       "type": "date_histogram",
+       "field": "recordUpdateTime",
+       "settings": {
+        "interval": "auto",
+        "min_doc_count": "0",
+        "trimEdges": "0"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": 119,
+   "type": "barchart",
+   "title": "Altitude Distribution",
+   "description": "maximumAltitude bucketed into 50 m bands.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 44
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "palette-classic"
+     },
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     },
+     "custom": {
+      "axisPlacement": "auto",
+      "fillOpacity": 80,
+      "lineWidth": 1,
+      "axisLabel": "Plans",
+      "hideFrom": {
+       "legend": false,
+       "tooltip": false,
+       "viz": false
+      }
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "vertical",
+    "showValue": "auto",
+    "xTickLabelRotation": 0,
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single",
+     "sort": "none",
+     "hideZeros": false
+    }
+   },
+   "pluginVersion": "12.1.1",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "count"
+      }
+     ],
+     "bucketAggs": [
+      {
+       "id": "2",
+       "type": "histogram",
+       "field": "maximumAltitude",
+       "settings": {
+        "interval": "50",
+        "min_doc_count": "0"
+       }
+      }
+     ],
+     "alias": ""
+    }
+   ]
+  },
+  {
+   "id": 120,
+   "type": "table",
+   "title": "Drone Plan Detail",
+   "description": "Raw documents. Replaces the two stacked terms-aggregation tables, which produced a cartesian product of buckets rather than one row per plan.",
+   "datasource": {
+    "type": "elasticsearch",
+    "uid": "bdq1z7uvssu80d"
+   },
+   "gridPos": {
+    "h": 12,
+    "w": 24,
+    "x": 0,
+    "y": 52
+   },
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [],
+     "custom": {
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      },
+      "filterable": true,
+      "inspect": false
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "maximumAltitude"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "lengthm"
+       },
+       {
+        "id": "displayName",
+        "value": "Max Alt"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "flightDistanceInKm"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "lengthkm"
+       },
+       {
+        "id": "displayName",
+        "value": "Distance"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "actualDurationInSeconds"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       },
+       {
+        "id": "displayName",
+        "value": "Duration"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "priority.priorityLevelSimple"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Priority"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "cellHeight": "sm",
+    "showHeader": true,
+    "frameIndex": 0,
+    "footer": {
+     "show": false,
+     "reducer": [
+      "sum"
+     ],
+     "countRows": false,
+     "fields": ""
+    },
+    "sortBy": [
+     {
+      "desc": true,
+      "displayName": "submitTime"
+     }
+    ]
+   },
+   "pluginVersion": "12.1.1",
+   "transformations": [
+    {
+     "id": "filterFieldsByName",
+     "options": {
+      "include": {
+       "names": [
+        "submitTime",
+        "operationPlanId",
+        "operator",
+        "sourceOrganization",
+        "state",
+        "modeOfOperation",
+        "priority.priorityLevelSimple",
+        "startTime",
+        "endTime",
+        "actualEndTime",
+        "maximumAltitude",
+        "flightDistanceInKm",
+        "actualDurationInSeconds"
+       ]
+      }
+     }
+    }
+   ],
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "elasticsearch",
+      "uid": "bdq1z7uvssu80d"
+     },
+     "query": "_index: utm-op-statistics* AND state:${state:lucene} AND modeOfOperation:${mode:lucene} AND operator:${operator:lucene} AND sourceOrganization:${org:lucene}",
+     "timeField": "recordUpdateTime",
+     "alias": "",
+     "metrics": [
+      {
+       "id": "1",
+       "type": "raw_data",
+       "settings": {
+        "size": "500"
+       }
+      }
+     ],
+     "bucketAggs": []
+    }
+   ]
+  }
+ ],
+ "preload": false,
+ "refresh": "5m",
+ "schemaVersion": 41,
+ "tags": [
+  "utm-observability",
+  "utm",
+  "drone-plans",
+  "elasticsearch"
+ ],
+ "templating": {
+  "list": [
+   {
+    "name": "state",
+    "label": "State",
+    "type": "query",
+    "datasource": {
+     "type": "elasticsearch",
+     "uid": "bdq1z7uvssu80d"
+    },
+    "query": "{\"find\": \"terms\", \"field\": \"state\"}",
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": "*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0
+   },
+   {
+    "name": "mode",
+    "label": "Mode of Operation",
+    "type": "query",
+    "datasource": {
+     "type": "elasticsearch",
+     "uid": "bdq1z7uvssu80d"
+    },
+    "query": "{\"find\": \"terms\", \"field\": \"modeOfOperation\"}",
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": "*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0
+   },
+   {
+    "name": "operator",
+    "label": "Operator",
+    "type": "query",
+    "datasource": {
+     "type": "elasticsearch",
+     "uid": "bdq1z7uvssu80d"
+    },
+    "query": "{\"find\": \"terms\", \"field\": \"operator\"}",
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": "*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0
+   },
+   {
+    "name": "org",
+    "label": "Organization",
+    "type": "query",
+    "datasource": {
+     "type": "elasticsearch",
+     "uid": "bdq1z7uvssu80d"
+    },
+    "query": "{\"find\": \"terms\", \"field\": \"sourceOrganization\"}",
+    "refresh": 2,
+    "multi": true,
+    "includeAll": true,
+    "allValue": "*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    },
+    "options": [],
+    "sort": 1,
+    "hide": 0
+   }
+  ]
+ },
+ "time": {
+  "from": "now-1y",
+  "to": "now"
+ },
+ "timepicker": {},
+ "timezone": "browser",
+ "title": "09 - Drone Plan Statistics",
+ "description": "Operation-plan STATISTICS from the utm-op-statistics index (utm-statistics-es7). Historical: 2026-03-06 to 2026-05-12.\n\nFor LIVE operation plans and their lifecycle states see *06 - Operation Plan Lifecycle*, which reads operation-plan-wrapper on core-es7. The two differ by design: this copy is entirely CLOSED plans, the live store carries the full PROPOSED/AUTHORIZED/ACTIVATED/CLOSED spread.",
+ "uid": "utm-drone-plans",
+ "version": 0,
+ "weekStart": ""
+}

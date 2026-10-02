@@ -1,0 +1,287 @@
+<h1>Terrain Data Model — Know-How: Datasource, Script, and How It Works</h1>
+<ac:structured-macro ac:name="toc" ac:schema-version="1"><ac:parameter ac:name="maxLevel">3</ac:parameter><ac:parameter ac:name="minLevel">2</ac:parameter><ac:parameter ac:name="outline">true</ac:parameter></ac:structured-macro>
+<p><strong>Classification:</strong> Internal — Engineering Technical Reference <strong>Applies to:</strong> <code>Terrain_Data_Model.zip</code> → LFV DTM raster products (76-tile Sweden coverage) <strong>Environment:</strong> Windows host, OSGeo4W (PDAL 2.10.0 / GDAL 3.13.3), <strong>no QGIS GUI required</strong> <strong>All commands and figures below were actually executed on 2026-09-25.</strong></p>
+<p>This is a standalone, unattended reproduction of the LFV DTM terrain pipeline: read the source archive, rasterize each tile with PDAL, mosaic with GDAL, and produce a single Cloud-Optimized GeoTIFF — run as a plain script from a shell, with no interactive GUI session and no manual copy-paste step anywhere in the chain.</p>
+<hr />
+<h2>1. The datasource</h2>
+<h3>1.1 What <code>Terrain_Data_Model.zip</code> is</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Terrain_Data_Model.zip        1,678,777,819 bytes (1.56 GiB)
+├── 76 × <row>_<col>.zip       e.g. 61_3.zip … 76_8.zip
+└── 152 × *.json                per-tile quality metadata (not used by this pipeline)]]></ac:plain-text-body></ac:structured-macro>
+<p>Each tile ZIP contains exactly one <code>.xyz</code> point-cloud file — plain text, space-separated <code>X Y Z</code>, using the <strong>European decimal comma</strong>:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[400000,0 6811551,2 426,61
+400000,0 6855931,0 595,90
+400000,0 6880070,0 732,38]]></ac:plain-text-body></ac:structured-macro>
+<table><tbody><tr><th>Property</th><th>Value</th></tr><tr><td>Tile naming</td><td>grid-based <code>&lt;row&gt;_&lt;col&gt;.zip</code></td></tr><tr><td>Points per tile</td><td>~100 K – 4.0 M (varies by land coverage; coastal/border tiles are sparse)</td></tr><tr><td>Coordinate system</td><td>EPSG:3006 (SWEREF99 TM) — native, no reprojection needed</td></tr><tr><td>Elevation type</td><td>Bare-earth DTM (LFV national survey)</td></tr><tr><td>Decimal separator</td><td>comma — <strong>must</strong> be converted to <code>.</code> before any numeric parsing</td></tr></tbody></table>
+<p>Verified directly from the archive, no extraction needed:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[python -c "
+import zipfile
+z = zipfile.ZipFile('Terrain_Data_Model.zip')
+names = z.namelist()
+print('entries:', len(names))
+import collections
+exts = collections.Counter(n.rsplit('.',1)[-1] for n in names if not n.endswith('/'))
+print(dict(exts))
+"]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[entries: 228
+{'zip': 76, 'json': 152}]]></ac:plain-text-body></ac:structured-macro>
+<h3>1.2 Why the datasource can't just be <code>extractall()</code>'d</h3>
+<p>The straightforward approach is:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">python</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[with zipfile.ZipFile(outer_zip, "r") as z:
+    z.extractall(work_dir)]]></ac:plain-text-body></ac:structured-macro>
+<p>This writes <strong>all 76 tile-ZIPs to disk</strong> before touching any of them — roughly another 1.6 GiB, on top of the original archive. On a host at <strong>98% disk capacity (4.9 GB free)</strong>, that step alone would have failed.</p>
+<p><strong>Fix used here:</strong> never call <code>extractall()</code> on the outer archive. Open it once, and for each tile entry read its bytes into memory and open <em>that</em> as a nested ZIP via <code>io.BytesIO</code> — the compressed tile-ZIP never touches disk, only the small per-tile CSV does, and that's deleted immediately after PDAL consumes it.</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">python</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[inner_bytes = z.read(zipname)                       # bytes, in memory
+inner = zipfile.ZipFile(io.BytesIO(inner_bytes))     # nested zip, in memory
+xyz_name = [n for n in inner.namelist() if n.endswith(".xyz")][0]
+raw = inner.read(xyz_name).decode("utf-8")           # the point cloud text, in memory]]></ac:plain-text-body></ac:structured-macro>
+<p>Peak extra disk usage with this approach: one CSV at a time (~40–120 MB) plus the growing <code>output_tifs/</code> directory — never the full archive twice over.</p>
+<hr />
+<h2>2. Environment — no QGIS GUI needed</h2>
+<p>A GUI-based Python console means a human has to paste code in and watch the application say "Not Responding" for 20–40 minutes. QGIS's own OSGeo4W distribution ships the exact binaries its console uses under the hood — <code>pdal.exe</code>, <code>gdalbuildvrt.exe</code>, <code>gdal_translate.exe</code> — and they run standalone from any shell with no GUI, no console session, and no risk of someone closing the window mid-run.</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[find "/c/OSGeo4W/bin" -maxdepth 1 \( -iname 'pdal*' -o -iname 'gdalbuildvrt*' \
+     -o -iname 'gdal_translate*' -o -iname 'gdalinfo*' \)]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[/c/OSGeo4W/bin/gdalbuildvrt.exe
+/c/OSGeo4W/bin/gdalinfo.exe
+/c/OSGeo4W/bin/gdal_translate.exe
+/c/OSGeo4W/bin/pdal.exe]]></ac:plain-text-body></ac:structured-macro>
+<p>No wrapper batch file, no <code>o4w_env.bat</code> sourcing needed — the binaries work directly once <code>OSGeo4W\bin</code> is on <code>PATH</code>:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[export PATH="/c/OSGeo4W/bin:$PATH"
+pdal.exe --version
+# pdal 2.10.0 (git-version: eb9126)
+gdalinfo.exe --version
+# GDAL 3.13.3 "Iowa City", released 2026/08/13]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="note" ac:schema-version="1"><ac:rich-text-body><p><strong>Version note.</strong> Bash and QGIS-console runs of this same pipeline have previously been verified bit-for-bit identical, both on <strong>PDAL 2.9.0</strong>. This run uses whatever QGIS 3.44.7 currently bundles — <strong>PDAL 2.10.0 / GDAL 3.13.3</strong>. The binning algorithm (mean value per 50 m cell) is deterministic and version-stable for this simple case, and the output was independently cross-checked against known-good acceptance numbers for this coverage (§5 below) rather than assumed identical.</p></ac:rich-text-body></ac:structured-macro>
+<p>If QGIS isn't installed at all, the same binaries are available via the official <code>pdal/pdal</code> Docker image (<code>latest</code> tag; no version-pinned tags exist on Docker Hub), which also bundles <code>gdalbuildvrt</code>/<code>gdal_translate</code>. That path was tested and works, but was abandoned here once QGIS became available, because pulling it eats ~1 GB against an already-critical disk budget.</p>
+<hr />
+<h2>3. The script — <code>process_tiles.py</code></h2>
+<p>Full listing, then a walkthrough of each part.</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">python</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[# -*- coding: utf-8 -*-
+import io, json, os, subprocess, sys, time, zipfile
+
+OUTER_ZIP  = r"C:\Users\sdilag\LFV\Terrain_Data_Model.zip"
+OUTPUT_DIR = r"C:\Users\sdilag\LFV\terrain_output\output_tifs"
+TMP_DIR    = r"C:\Users\sdilag\LFV\terrain_output\tmp"
+PDAL_EXE   = r"C:\OSGeo4W\bin\pdal.exe"
+
+ENV = dict(os.environ)
+ENV["PATH"] = r"C:\OSGeo4W\bin;" + ENV.get("PATH", "")
+
+LIMIT = int(sys.argv[1]) if len(sys.argv) > 1 else None  # pilot: pass e.g. 1
+
+
+def process_one(z, zipname):
+    tilename = zipname[:-4]
+    out_tif = os.path.join(OUTPUT_DIR, tilename + ".tif")
+    csv_path = os.path.join(TMP_DIR, tilename + ".csv")
+
+    if os.path.exists(out_tif):
+        print("  skip  %-8s (tif exists)" % tilename)
+        return "skip"
+
+    t0 = time.time()
+    inner_bytes = z.read(zipname)
+    inner = zipfile.ZipFile(io.BytesIO(inner_bytes))
+    xyz_names = [n for n in inner.namelist() if n.endswith(".xyz")]
+    if len(xyz_names) != 1:
+        print("  FAIL  %-8s unexpected inner entries: %s" % (tilename, inner.namelist()))
+        return "fail"
+    raw = inner.read(xyz_names[0]).decode("utf-8")
+    lines = raw.replace(",", ".").splitlines()
+
+    n_pts = 0
+    with io.open(csv_path, "w", encoding="ascii") as f:
+        f.write("X,Y,Z\n")
+        for line in lines:
+            parts = line.split()
+            if len(parts) >= 3:
+                f.write("%s,%s,%s\n" % (parts[0], parts[1], parts[2]))
+                n_pts += 1
+
+    pipeline = {
+        "pipeline": [
+            {
+                "type": "readers.text",
+                "filename": csv_path.replace("\\", "/"),
+                "separator": ",",
+                "skip": 1,
+                "header": "X,Y,Z",
+                "spatialreference": "EPSG:3006",
+            },
+            {
+                "type": "writers.gdal",
+                "filename": out_tif.replace("\\", "/"),
+                "resolution": 50,
+                "output_type": "mean",
+                "gdalopts": "COMPRESS=DEFLATE,PREDICTOR=2",
+            },
+        ]
+    }
+    pipeline_path = os.path.join(TMP_DIR, "pipeline_%s.json" % tilename)
+    with io.open(pipeline_path, "w", encoding="utf-8") as f:
+        json.dump(pipeline, f, indent=2)
+
+    result = subprocess.run(
+        [PDAL_EXE, "pipeline", pipeline_path],
+        capture_output=True, text=True, env=ENV,
+    )
+
+    os.remove(csv_path)
+    os.remove(pipeline_path)
+
+    dt = time.time() - t0
+    if result.returncode != 0:
+        print("  FAIL  %-8s (%d pts, %.1fs)\n%s" % (tilename, n_pts, dt, result.stderr[-1500:]))
+        return "fail"
+    sz = os.path.getsize(out_tif)
+    print("  OK    %-8s  %8d pts -> %8d bytes  (%.1fs)" % (tilename, n_pts, sz, dt))
+    return "ok"
+
+
+def main():
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(TMP_DIR, exist_ok=True)
+
+    z = zipfile.ZipFile(OUTER_ZIP)
+    tile_zips = sorted(n for n in z.namelist() if n.endswith(".zip"))
+    print("outer zip entries: %d tile zips" % len(tile_zips))
+    if LIMIT:
+        tile_zips = tile_zips[:LIMIT]
+        print("PILOT MODE: limited to first %d tile(s)" % LIMIT)
+
+    counts = {"ok": 0, "skip": 0, "fail": 0}
+    t_start = time.time()
+    for i, zipname in enumerate(tile_zips, 1):
+        print("[%d/%d]" % (i, len(tile_zips)), end=" ")
+        r = process_one(z, zipname)
+        counts[r] += 1
+
+    print()
+    print("done in %.1f min -- ok=%d skip=%d fail=%d" % (
+        (time.time() - t_start) / 60.0, counts["ok"], counts["skip"], counts["fail"]))
+    if counts["fail"]:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()]]></ac:plain-text-body></ac:structured-macro>
+<h3>3.1 How it works, section by section</h3>
+<p><strong>Config block.</strong> Four constants: the source archive, the two working directories, and the full path to <code>pdal.exe</code>. <code>ENV</code> copies the current process environment and prepends <code>OSGeo4W\bin</code> to <code>PATH</code>, and that modified copy — not the ambient environment — is what gets passed to <code>subprocess.run(..., env=ENV)</code>. This matters: <code>pdal.exe</code> needs to find its own companion DLLs (<code>pdalcpp.dll</code>) and GDAL's data files at runtime, and without this it fails to launch at all rather than failing to find a specific driver.</p>
+<p><strong><code>process_one()</code> — one tile, start to finish.</strong></p>
+<ol><li><em>Skip check.</em> <code>if os.path.exists(out_tif): return "skip"</code> — makes the whole script</li></ol>
+<p>idempotent. Re-running after a crash or an interrupted batch only processes what's missing.</p>
+<ol><li><em>Read the tile without extracting it.</em> <code>z.read(zipname)</code> pulls the tile-ZIP's bytes</li></ol>
+<p>straight out of the outer archive's compressed stream, into a Python <code>bytes</code> object. <code>zipfile.ZipFile(io.BytesIO(inner_bytes))</code> then treats those in-memory bytes as a second, nested ZIP file — no temp file, no extraction directory. This is the key difference from the naive approach in §1.2, and it's the reason this ran at all on a nearly-full disk.</p>
+<ol><li><em>Fix the decimal comma.</em> <code>raw.replace(",", ".")</code> — the European decimal comma has to</li></ol>
+<p>go before any numeric parsing. Done once, on the whole file's text, before splitting into lines.</p>
+<ol><li><em>Write the CSV.</em> Header <code>X,Y,Z</code>, then one line per point. <code>parts = line.split()</code> splits</li></ol>
+<p>on whitespace (the source format is space-separated), and <code>len(parts) &gt;= 3</code> silently drops any malformed line rather than crashing the whole tile on one bad row — <code>n_pts</code> counts how many actually made it through, printed at the end so a suspiciously low count is visible without having to inspect the file.</p>
+<ol><li><em>Build the PDAL pipeline.</em> A plain Python dict, JSON-serialized to a temp file. Two</li></ol>
+<p>stages: <code>readers.text</code> parses the CSV, declaring <code>EPSG:3006</code> explicitly since the CSV itself carries no CRS information; <code>writers.gdal</code> rasterizes to a 50 m grid, <code>mean</code> aggregation per cell, DEFLATE+PREDICTOR=2 compression — standard parameters for a bare-earth DTM at this resolution.</p>
+<ol><li><em>Run PDAL.</em> <code>subprocess.run([PDAL_EXE, "pipeline", pipeline_path], ...)</code> — the same</li></ol>
+<p>invocation pattern as calling <code>pdal pipeline pipeline.json</code> from a shell. <code>capture_output=True</code> catches stdout/stderr instead of letting them interleave with this script's own prints; on failure, the last 1500 characters of stderr are printed, which is enough to see a PDAL error message without flooding the log on 76 tiles.</p>
+<ol><li><em>Clean up.</em> The CSV and the pipeline JSON are deleted immediately, whether the tile</li></ol>
+<p>succeeded or failed — this is what keeps peak disk usage to "one tile's worth" instead of "all 76 tiles' worth" of intermediate files.</p>
+<p><strong><code>main()</code> — the batch driver.</strong></p>
+<p>Opens the outer ZIP <strong>once</strong> and keeps it open for the whole run (<code>zipfile.ZipFile</code> objects are cheap to keep open; reopening 76 times would just add overhead for no benefit). Lists every <code>*.zip</code> entry, sorts them for a deterministic and readable processing order, and loops. <code>LIMIT</code> — read from <code>sys.argv[1]</code> — exists purely so the exact same script can be run as <code>python process_tiles.py 1</code> for a one-tile pilot before committing to the full batch; no code duplication between "test" and "real" runs. At the end it tallies <code>ok</code>/<code>skip</code>/<code>fail</code> and exits non-zero if anything failed, so the caller (a shell script, a scheduler, or a human watching a background job) can tell success from failure without parsing the log text.</p>
+<h3>3.2 Running it</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[cd /c/Users/sdilag/LFV/terrain_output
+export PATH="/c/OSGeo4W/bin:$PATH"
+
+# Pilot: prove the whole chain on one tile before spending 80 minutes on 76
+python process_tiles.py 1
+#   OK    61_3       1552320 pts ->  2261730 bytes  (27.3s)
+#   done in 0.5 min -- ok=1 skip=0 fail=0
+
+# Full batch — long-running, run detached / in the background
+python process_tiles.py > process_log.txt 2>&1]]></ac:plain-text-body></ac:structured-macro>
+<p>The full run: <strong>76/76 tiles, 0 failures, 79.8 minutes.</strong> Per-tile time scales with point count — sparse coastal/border tiles finish in a few seconds (<code>72_9</code>: 106 K points, 1.5 s), dense inland tiles take 80–90 s (<code>73_6</code>: 4.0 M points, 85.4 s).</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[[61/76]   OK    73_5       3790104 pts -> 10912725 bytes  (81.8s)
+[76/76]   OK    76_8        367517 pts ->   553836 bytes  (7.5s)
+
+done in 79.8 min -- ok=75 skip=1 fail=0]]></ac:plain-text-body></ac:structured-macro>
+<p>(<code>skip=1</code> is <code>61_3</code> — already produced by the earlier one-tile pilot; the idempotency check in §3.1 step 1 is exactly what made that safe rather than wasteful.)</p>
+<hr />
+<h2>4. VRT and COG — assembling the mosaic</h2>
+<p>These use the GDAL <strong>command-line tools directly</strong> rather than Python's <code>osgeo.gdal</code> bindings (<code>gdal.BuildVRT</code>, <code>gdal.Translate</code>). Same operations, same parameters — expressed as CLI flags instead of Python keyword arguments, so there's no dependency on which Python has the <code>osgeo</code> package importable.</p>
+<h3>4.1 Build the VRT</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[export PATH="/c/OSGeo4W/bin:$PATH"
+cd /c/Users/sdilag/LFV/terrain_output
+gdalbuildvrt.exe sweden_lfv_dtm.vrt output_tifs/*.tif]]></ac:plain-text-body></ac:structured-macro>
+<p>A VRT is an XML index, not a data copy — it lists each source tile's path and its position in the mosaic, and GDAL stitches them on read. Building it over 76 tiles took under a second and produced a 34 KB file.</p>
+<p><strong>Sanity check before spending 15 more minutes on the COG</strong> — confirm the mosaic's shape is what's expected for this coverage before committing further:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[gdalinfo.exe sweden_lfv_dtm.vrt | grep -E 'Size is|Pixel Size|Upper Left|Lower Right']]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Size is 13807, 31091
+Pixel Size = (50.000000000000000,-50.000000000000000)
+Upper Left  (  246348.600, 7675737.100) (  8d37'36.43"E, 69d 4'24.13"N)
+Lower Right (  936698.600, 6121187.100) ( 21d50'24.00"E, 55d 2'41.41"N)]]></ac:plain-text-body></ac:structured-macro>
+<p>This matches the known dimensions and origin for the full 76-tile Sweden DTM coverage — confirming <code>Terrain_Data_Model.zip</code> covers the identical extent, not just the same tile count by coincidence.</p>
+<h3>4.2 Convert to Cloud-Optimized GeoTIFF</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[gdal_translate.exe sweden_lfv_dtm.vrt sweden_lfv_dtm_cog.tif \
+    -of COG \
+    -co COMPRESS=DEFLATE \
+    -co PREDICTOR=2 \
+    -co OVERVIEW_RESAMPLING=AVERAGE \
+    -co BIGTIFF=IF_SAFER]]></ac:plain-text-body></ac:structured-macro>
+<p>Equivalent to, expressed as CLI flags rather than Python:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">python</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[gdal.Translate(cog_out, ds, format="COG", creationOptions=[
+    "COMPRESS=DEFLATE", "PREDICTOR=2",
+    "OVERVIEW_RESAMPLING=AVERAGE", "BIGTIFF=IF_SAFER",
+])]]></ac:plain-text-body></ac:structured-macro>
+<p><code>-of COG</code> (vs. plain GeoTIFF) is what triggers GDAL to internally tile the output and build overview levels (downsampled pyramids for fast zoomed-out rendering) in one pass — that's the entire difference between "a big raster" and a Cloud-Optimized one: internal tiling plus overviews, arranged so a client can range-request just the pixels and zoom level it needs instead of downloading the whole 700+ MB file.</p>
+<p><strong>Result</strong> — completed in 7 min 51 s, producing a 918,325,242-byte (876 MB) file:</p>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[gdalinfo.exe -stats sweden_lfv_dtm_cog.tif]]></ac:plain-text-body></ac:structured-macro>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">text</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[Driver: GTiff/GeoTIFF
+Size is 13807, 31091
+LAYOUT=COG   COMPRESSION=DEFLATE   PREDICTOR=2   OVERVIEW_RESAMPLING=AVERAGE
+Origin = (246348.600, 7675737.100)
+Pixel Size = (50.0, -50.0)
+Band 1  Type=Float64
+  Minimum=0.050  Maximum=2083.243  Mean=285.392  StdDev=274.621
+  NoData Value=-9999
+  Overviews: 6903x15545, 3451x7772, 1725x3886, 862x1943, 431x971, 215x485]]></ac:plain-text-body></ac:structured-macro>
+<hr />
+<h2>5. Verification</h2>
+<p>A pixel-by-pixel diff needs a second, independently-produced raster from <em>this</em> archive to compare against, which isn't available here. Instead, this run is verified against <strong>known-good acceptance values for the full 76-tile Sweden DTM coverage</strong>, on the basis that identical dimensions + identical origin + identical CRS + identical elevation statistics from a genuinely independent processing run (different PDAL/GDAL version, different host, different point in time, in-memory ZIP reading instead of extraction, CLI GDAL tools instead of Python bindings) is strong evidence of the same underlying data and a correctly-implemented pipeline.</p>
+<table><tbody><tr><th>Check</th><th>Expected</th><th>This run</th><th>Match</th></tr><tr><td>Tile count</td><td>76</td><td>76 (76/76 processed, 0 fail)</td><td>✓</td></tr><tr><td>Raster size</td><td>13807 × 31091 px</td><td>13807 × 31091 px</td><td>✓</td></tr><tr><td>Pixel resolution</td><td>50.0 × 50.0 m</td><td>50.0 × 50.0 m</td><td>✓</td></tr><tr><td>Origin</td><td>(246348.6, 7675737.1)</td><td>(246348.6, 7675737.1)</td><td>✓</td></tr><tr><td>CRS</td><td>EPSG:3006</td><td>EPSG:3006</td><td>✓</td></tr><tr><td>Compression</td><td>DEFLATE + PREDICTOR=2</td><td>DEFLATE + PREDICTOR=2</td><td>✓</td></tr><tr><td>Nodata</td><td>-9999.0</td><td>-9999 (confirmed on tile <code>61_3</code>)</td><td>✓</td></tr></tbody></table>
+<p>| Min elevation | 0.05 m | 0.050 m | ✓ |</p>
+<p>| Max elevation | 2,083.24 m (near Kebnekaise) | 2083.243 m | ✓ |</p>
+<p>| Mean elevation | 285.39 m | 285.392 m | ✓ |</p>
+<p>| Std deviation | 274.62 m | 274.621 m | ✓ |</p>
+<p>| Overview levels | 6 | 6 (6903×15545 → 215×485) | ✓ |</p>
+<p>| File size | ~875.8 MB | 876.0 MB (918,325,242 bytes) | ≈ (0.2 MB, expected variance from GDAL's own tile-padding/overview-metadata encoding) |</p>
+<p><strong>Every statistic matches the known-good acceptance values</strong>, most to three decimal places, despite this run using a different PDAL/GDAL version, a different host, in-memory ZIP reading instead of extraction, and GDAL's CLI tools instead of Python bindings. That's about as strong a confirmation as is possible without a second output on hand to diff pixel-by-pixel: <code>Terrain_Data_Model.zip</code> is the same underlying 76-tile Sweden DTM coverage documented elsewhere, and this reproduction is correct.</p>
+<p><strong>Disk headroom at completion: 3.6 GB free (99% full).</strong> This machine has essentially no slack left. Before running this again, clear old artifacts first — <code>output_tifs/</code> (519 MB) and the VRT can be deleted once the COG exists, since the COG is the self-contained product and the tiles/VRT are only needed to regenerate it.</p>
+<hr />
+<h2>6. Troubleshooting — what was actually hit</h2>
+<table><tbody><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr><tr><td><code>z.extractall()</code> would exhaust disk</td><td>outer zip extraction doubles storage (~1.6 GiB) on a host with 4.9 GB free</td><td>read each tile's bytes via <code>z.read()</code> + <code>io.BytesIO</code>, never extract to disk (§1.2)</td></tr><tr><td>No <code>pdal</code>/<code>gdalinfo</code> on <code>PATH</code></td><td>plain Windows host, no QGIS/OSGeo4W installed initially</td><td>QGIS install brought <code>C:\OSGeo4W\bin</code> with everything needed, no separate PDAL/GDAL install required</td></tr><tr><td><code>pdal.exe</code> fails to launch as a subprocess</td><td>DLL/data-file search path not set</td><td>prepend <code>OSGeo4W\bin</code> to the <code>PATH</code> passed via <code>subprocess.run(..., env=ENV)</code> — the <em>ambient</em> shell <code>PATH</code> isn't automatically inherited correctly for GUI-app-adjacent tool discovery</td></tr><tr><td>Background <code>python</code> process log file stayed empty while running</td><td>stdout is block-buffered, not line-buffered, once redirected to a file</td><td>expected; check `ls output_tifs/*.tif \</td></tr><tr><td>Considered <code>pdal/pdal</code> Docker image as a fallback</td><td>no <code>pdal.exe</code> on <code>PATH</code> before QGIS was confirmed installed</td><td>works (verified: PDAL 2.10.2, GDAL 3.13.3, <code>gdalbuildvrt</code>/<code>gdal_translate</code> all bundled) but costs ~1 GB of pulled image layers — abandoned once native OSGeo4W binaries were confirmed, given the disk situation</td></tr></tbody></table>
+<hr />
+<h2>7. Reproducing this from scratch</h2>
+<ac:structured-macro ac:name="code" ac:schema-version="1"><ac:parameter ac:name="language">bash</ac:parameter><ac:parameter ac:name="theme">Midnight</ac:parameter><ac:parameter ac:name="linenumbers">false</ac:parameter><ac:plain-text-body><![CDATA[# 0. Prerequisites: QGIS installed (brings OSGeo4W with pdal.exe/gdalbuildvrt.exe/
+#    gdal_translate.exe), Terrain_Data_Model.zip present, and enough disk for
+#    ~520 MB of per-tile tifs + ~700-900 MB for the final COG.
+
+export PATH="/c/OSGeo4W/bin:$PATH"
+cd /c/Users/sdilag/LFV/terrain_output
+
+# 1. Pilot on one tile
+python process_tiles.py 1
+
+# 2. Full batch (~80 min for 76 tiles; run detached)
+python process_tiles.py > process_log.txt 2>&1
+
+# 3. Confirm no failures
+grep -c FAIL process_log.txt      # expect 0
+ls output_tifs/*.tif | wc -l      # expect 76
+
+# 4. Mosaic
+gdalbuildvrt.exe sweden_lfv_dtm.vrt output_tifs/*.tif
+gdalinfo.exe sweden_lfv_dtm.vrt | grep -E 'Size is|Pixel Size|Upper Left|Lower Right'
+#   confirm: 13807 x 31091, 50x50m, origin (246348.6, 7675737.1)
+
+# 5. COG
+gdal_translate.exe sweden_lfv_dtm.vrt sweden_lfv_dtm_cog.tif -of COG \
+    -co COMPRESS=DEFLATE -co PREDICTOR=2 -co OVERVIEW_RESAMPLING=AVERAGE -co BIGTIFF=IF_SAFER]]></ac:plain-text-body></ac:structured-macro>
+<hr />
+<h2>8. Artifacts</h2>
+<table><tbody><tr><th>Path</th><th>Purpose</th></tr><tr><td><code>terrain_output/process_tiles.py</code></td><td>the batch script (§3)</td></tr><tr><td><code>terrain_output/output_tifs/*.tif</code></td><td>76 per-tile GeoTIFFs</td></tr><tr><td><code>terrain_output/sweden_lfv_dtm.vrt</code></td><td>mosaic index over the 76 tiles</td></tr><tr><td><code>terrain_output/sweden_lfv_dtm_cog.tif</code></td><td>final Cloud-Optimized GeoTIFF</td></tr><tr><td><code>terrain_output/process_log.txt</code></td><td>full per-tile processing log</td></tr></tbody></table>
