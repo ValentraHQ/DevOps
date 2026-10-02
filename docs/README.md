@@ -11,6 +11,7 @@ Confluence storage format (wiki).
 | **Technical Reference** — dashboard suite build detail, queries, file manifest | [`UTM-Observability-Technical-Reference.md`](UTM-Observability-Technical-Reference.md) | `UTM-Observability-Technical-Reference.confluence.xml` | Engineers maintaining the dashboards |
 | **BankID ↔ Keycloak (SKYZR/DOR)** — architecture, data flow and **reproducible E2E**: BankID mTLS, DMS propagation, operator identity, FLYK flight-plan filing, the 26.7.3 image | [`BankID-Keycloak-SKYZR-Integration.md`](BankID-Keycloak-SKYZR-Integration.md) | `BankID-Keycloak-SKYZR-Integration.confluence.xml` | Identity / integration engineers |
 | **Terrain Data Model** — know-how for `Terrain_Data_Model.zip` → LFV DTM: the script, how it works, VRT/COG assembly, verified against known-good acceptance values | [`Terrain-Data-Model-Know-How.md`](Terrain-Data-Model-Know-How.md) | `Terrain-Data-Model-Know-How.confluence.xml` | GIS / terrain-data engineers |
+| **UTM System Architecture** — namespace/subsystem map, per-service purpose (confidence-tagged), data flow, messaging backbone, data stores | [`UTM-System-Architecture.md`](UTM-System-Architecture.md) | `UTM-System-Architecture.confluence.xml` | Engineers new to the platform; anyone tracing a request across services |
 
 Suggested Confluence page tree:
 
